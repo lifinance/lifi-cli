@@ -1,0 +1,10 @@
+.claude
+.cursor
+.cursorrules
+.cursorrules.md
+.cursorrules.txt
+.cursorrules.yml
+.cursorrules.yaml
+node_modules/
+dist/
+*.tsbuildinfo

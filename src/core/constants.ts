@@ -1,0 +1,15 @@
+export const API_BASE_URL = 'https://li.quest/v1';
+export const INTEGRATOR_ID = 'lifi-cli';
+export const CONFIG_DIR_NAME = 'lifi';
+export const CONFIG_FILE_NAME = 'config.json';
+export const AUTH_HEADER = 'X-LiFi-Api-Key';
+export const ENV_API_KEY = 'LIFI_API_KEY';
+
+export enum ExitCode {
+  Success = 0,
+  General = 1,
+  InvalidArgs = 2,
+  AuthError = 3,
+  ApiError = 4,
+  NetworkError = 5,
+}
