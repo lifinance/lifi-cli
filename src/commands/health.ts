@@ -7,7 +7,7 @@ import { handleError } from '../core/errors.js';
 export function registerHealthCommand(program: Command): void {
   program
     .command('health')
-    .description('Check LI.FI API connectivity')
+    .description('Check LI.FI API connectivity, latency, and available chains')
     .action(async (_options, command) => {
       const opts = command.optsWithGlobals();
       try {

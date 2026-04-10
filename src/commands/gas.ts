@@ -7,7 +7,12 @@ import { handleError } from '../core/errors.js';
 export function registerGasCommand(program: Command): void {
   program
     .command('gas [chain]')
-    .description('Get gas prices and suggestions')
+    .description('Get gas prices for all chains, or detailed suggestion for one chain')
+    .addHelpText('after', `
+Examples:
+  $ lifi gas                       # All chains gas prices
+  $ lifi gas 1                     # Ethereum gas suggestion (recommended cost in USD)
+  $ lifi gas ethereum --json`)
     .action(async (chain, _options, command) => {
       const opts = command.optsWithGlobals();
       try {

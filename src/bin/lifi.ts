@@ -20,7 +20,9 @@ export function createProgram(): Command {
     .version('0.1.0')
     .option('--json', 'Output raw JSON instead of formatted tables')
     .option('--no-color', 'Disable colored output')
-    .option('--verbose', 'Show verbose output including full API responses');
+    .option('--no-input', 'Disable interactive prompts (for scripting)')
+    .option('--verbose', 'Show verbose output including full API responses')
+    .addHelpText('after', '\nDocs: https://docs.li.fi/api-reference/introduction\nRepo: https://github.com/lifinance/lifi-cli');
 
   program.hook('preAction', (thisCommand) => {
     const opts = thisCommand.opts();
@@ -29,6 +31,9 @@ export function createProgram(): Command {
     }
     if (opts.verbose) {
       process.env.LIFI_VERBOSE = '1';
+    }
+    if (opts.input === false) {
+      process.env.LIFI_NO_INPUT = '1';
     }
   });
 

@@ -8,8 +8,13 @@ import { ExitCode } from '../core/constants.js';
 export function registerChainsCommand(program: Command): void {
   program
     .command('chains')
-    .description('List all supported chains')
-    .option('--type <type>', 'Filter by chain type (EVM, SVM, ...)')
+    .description('List all supported blockchain networks')
+    .option('--type <type>', 'Filter by chain type: EVM, SVM')
+    .addHelpText('after', `
+Examples:
+  $ lifi chains                    # All chains
+  $ lifi chains --type EVM         # Only EVM chains
+  $ lifi chains --json | jq '.chains[] | {id, name}'`)
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
@@ -30,6 +35,7 @@ export function registerChainsCommand(program: Command): void {
             c.nativeToken?.symbol || '-',
           ]);
           console.log(formatTable(['ID', 'Name', 'Type', 'Native Token'], rows));
+          console.log('\n  Next: lifi chain <id>  or  lifi tokens --chain <id>');
         }
       } catch (error) {
         handleError(error);
@@ -38,7 +44,12 @@ export function registerChainsCommand(program: Command): void {
 
   program
     .command('chain <idOrName>')
-    .description('Get chain detail by ID or name')
+    .description('Look up a single chain by numeric ID or name (case-insensitive)')
+    .addHelpText('after', `
+Examples:
+  $ lifi chain 42161             # By ID
+  $ lifi chain arbitrum          # By name
+  $ lifi chain ethereum --json   # JSON output`)
     .action(async (idOrName, _options, command) => {
       const opts = command.optsWithGlobals();
       try {

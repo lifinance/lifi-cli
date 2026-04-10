@@ -7,11 +7,16 @@ import { handleError } from '../core/errors.js';
 export function registerStatusCommand(program: Command): void {
   program
     .command('status <txHash>')
-    .description('Check transaction status')
-    .option('--bridge <bridge>', 'Bridge hint (speeds up lookup)')
-    .option('--from-chain <chainId>', 'Source chain ID')
-    .option('--to-chain <chainId>', 'Destination chain ID')
-    .option('--watch', 'Poll until complete or failed')
+    .description('Check cross-chain transfer status by transaction hash')
+    .option('--bridge <bridge>', 'Bridge key hint to speed up lookup (e.g. stargate, hop, across)')
+    .option('--from-chain <chainId>', 'Source chain ID (e.g. 1)')
+    .option('--to-chain <chainId>', 'Destination chain ID (e.g. 42161)')
+    .option('--watch', 'Poll every 5s until DONE or FAILED')
+    .addHelpText('after', `
+Examples:
+  $ lifi status 0xabc123def456...
+  $ lifi status 0xabc123... --watch
+  $ lifi status 0xabc123... --bridge stargate --from-chain 1 --to-chain 42161`)
     .action(async (txHash, options, command) => {
       const opts = command.optsWithGlobals();
       try {

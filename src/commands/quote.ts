@@ -3,34 +3,45 @@ import { input } from '@inquirer/prompts';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable, formatAmount } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
-import { handleError } from '../core/errors.js';
+import { handleError, CliError } from '../core/errors.js';
+import { ExitCode } from '../core/constants.js';
 
-async function promptIfMissing(value: string | undefined, message: string): Promise<string> {
+async function promptIfMissing(value: string | undefined, label: string): Promise<string> {
   if (value) return value;
-  return input({ message });
+  if (process.env.LIFI_NO_INPUT === '1') {
+    throw new CliError(`Missing required option: ${label}`, ExitCode.InvalidArgs, 'Pass all required flags when using --no-input');
+  }
+  return input({ message: `${label}:` });
 }
 
 export function registerQuoteCommand(program: Command): void {
   program
     .command('quote')
-    .description('Get a cross-chain swap quote')
-    .option('--from <chain>', 'Source chain (name or ID)')
-    .option('--to <chain>', 'Destination chain (name or ID)')
-    .option('--from-token <token>', 'Token to send (symbol or address)')
-    .option('--to-token <token>', 'Token to receive (symbol or address)')
-    .option('--amount <amount>', 'Amount in token units')
-    .option('--from-address <address>', 'Sender wallet address')
-    .option('--slippage <slippage>', 'Max slippage (e.g. 0.03 for 3%)', '0.03')
-    .option('--order <order>', 'Route preference (CHEAPEST, FASTEST, SAFEST)')
+    .description('Get the best route for a cross-chain or same-chain swap')
+    .option('--from <chain>', 'Source chain name or ID (e.g. ethereum, 1)')
+    .option('--to <chain>', 'Destination chain name or ID (e.g. arbitrum, 42161)')
+    .option('--from-token <token>', 'Token to send — symbol or address (e.g. USDC, 0xa0b8...)')
+    .option('--to-token <token>', 'Token to receive — symbol or address')
+    .option('--amount <amount>', 'Amount in smallest unit (e.g. 1000000 for 1 USDC)')
+    .option('--from-address <address>', 'Sender wallet address (0x...)')
+    .option('--slippage <slippage>', 'Max slippage as decimal (e.g. 0.03 for 3%)', '0.03')
+    .option('--order <order>', 'Route preference: CHEAPEST, FASTEST, or SAFEST')
+    .option('--allow-bridges <keys>', 'Only use these bridges (comma-separated keys from lifi tools)')
+    .option('--allow-exchanges <keys>', 'Only use these exchanges (comma-separated keys from lifi tools)')
+    .addHelpText('after', `
+Examples:
+  $ lifi quote --from ethereum --to arbitrum --from-token USDC --to-token USDC --amount 1000000 --from-address 0xd8dA...
+  $ lifi quote                          # Interactive mode — prompts for each field
+  $ lifi quote --from 1 --to 8453 --from-token USDC --to-token USDC --amount 1000000000 --json`)
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
-        const fromChain = await promptIfMissing(options.from, 'Source chain (name or ID):');
-        const toChain = await promptIfMissing(options.to, 'Destination chain (name or ID):');
-        const fromToken = await promptIfMissing(options.fromToken, 'Token to send (symbol or address):');
-        const toToken = await promptIfMissing(options.toToken, 'Token to receive (symbol or address):');
-        const fromAmount = await promptIfMissing(options.amount, 'Amount (in token units):');
-        const fromAddress = await promptIfMissing(options.fromAddress, 'Your wallet address:');
+        const fromChain = await promptIfMissing(options.from, '--from (source chain)');
+        const toChain = await promptIfMissing(options.to, '--to (destination chain)');
+        const fromToken = await promptIfMissing(options.fromToken, '--from-token');
+        const toToken = await promptIfMissing(options.toToken, '--to-token');
+        const fromAmount = await promptIfMissing(options.amount, '--amount');
+        const fromAddress = await promptIfMissing(options.fromAddress, '--from-address');
 
         const params: Record<string, string> = {
           fromChain,
@@ -42,6 +53,8 @@ export function registerQuoteCommand(program: Command): void {
           slippage: options.slippage,
         };
         if (options.order) params.order = options.order;
+        if (options.allowBridges) params.allowBridges = options.allowBridges;
+        if (options.allowExchanges) params.allowExchanges = options.allowExchanges;
 
         const { data } = await withSpinner('Fetching quote...', () =>
           api.get('/quote', { params }),
@@ -59,6 +72,9 @@ export function registerQuoteCommand(program: Command): void {
             ['Slippage', `${Number(options.slippage) * 100}%`],
           ];
           console.log(formatTable(['', ''], rows));
+          console.log('\n  Sign the transactionRequest with your wallet to execute.');
+          console.log('  Then track with: lifi status <txHash> --watch');
+          console.log('  Use --json to get the full transactionRequest object.');
         }
       } catch (error) {
         handleError(error);

@@ -7,9 +7,14 @@ import { handleError } from '../core/errors.js';
 export function registerTokensCommand(program: Command): void {
   program
     .command('tokens')
-    .description('List supported tokens')
-    .option('--chain <chainId>', 'Filter by chain ID')
-    .option('--min-price <price>', 'Filter by minimum USD price')
+    .description('List supported tokens across chains')
+    .option('--chain <chainId>', 'Filter by chain ID (e.g. 1 for Ethereum, 137 for Polygon)')
+    .option('--min-price <price>', 'Only show tokens with USD price >= this value')
+    .addHelpText('after', `
+Examples:
+  $ lifi tokens --chain 1                     # All Ethereum tokens
+  $ lifi tokens --chain 1 --min-price 100     # Tokens worth $100+
+  $ lifi tokens --chain 1 --json | jq '.tokens["1"][] | .symbol'`)
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
@@ -49,6 +54,7 @@ export function registerTokensCommand(program: Command): void {
           if (allTokens.length > 50) {
             console.log(`\n  Showing 50 of ${allTokens.length} tokens. Use --json for full list.`);
           }
+          console.log('\n  Next: lifi token <chain> <symbol>  or  lifi quote --from-token <symbol>');
         }
       } catch (error) {
         handleError(error);
@@ -57,7 +63,12 @@ export function registerTokensCommand(program: Command): void {
 
   program
     .command('token <chain> <symbol>')
-    .description('Get details for a specific token')
+    .description('Get details for a specific token by chain and symbol or address')
+    .addHelpText('after', `
+Examples:
+  $ lifi token 1 USDC                                              # By symbol
+  $ lifi token ethereum USDC                                       # By chain name
+  $ lifi token 1 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48       # By address`)
     .action(async (chain, symbol, _options, command) => {
       const opts = command.optsWithGlobals();
       try {

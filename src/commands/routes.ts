@@ -7,14 +7,18 @@ import { handleError } from '../core/errors.js';
 export function registerRoutesCommand(program: Command): void {
   program
     .command('routes')
-    .description('Get and compare cross-chain routes')
-    .option('--from <chain>', 'Source chain (name or ID)')
-    .option('--to <chain>', 'Destination chain (name or ID)')
-    .option('--from-token <token>', 'Token to send')
-    .option('--to-token <token>', 'Token to receive')
-    .option('--amount <amount>', 'Amount in token units')
-    .option('--from-address <address>', 'Sender wallet address')
-    .option('--order <order>', 'Sort preference (CHEAPEST, FASTEST, SAFEST)')
+    .description('Get multiple route options for comparison (unlike quote, returns several alternatives)')
+    .option('--from <chain>', 'Source chain name or ID (e.g. ethereum, 1)')
+    .option('--to <chain>', 'Destination chain name or ID (e.g. arbitrum, 42161)')
+    .option('--from-token <token>', 'Token to send — symbol or address (e.g. USDC)')
+    .option('--to-token <token>', 'Token to receive — symbol or address')
+    .option('--amount <amount>', 'Amount in smallest unit (e.g. 1000000 for 1 USDC)')
+    .option('--from-address <address>', 'Sender wallet address (0x...)')
+    .option('--order <order>', 'Sort preference: CHEAPEST, FASTEST, or SAFEST')
+    .addHelpText('after', `
+Examples:
+  $ lifi routes --from 1 --to 42161 --from-token USDC --to-token USDC --amount 1000000000 --json
+  $ lifi routes --from ethereum --to base --from-token USDC --to-token USDC --amount 1000000 --order CHEAPEST`)
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {

@@ -7,11 +7,15 @@ import { handleError } from '../core/errors.js';
 export function registerConnectionsCommand(program: Command): void {
   program
     .command('connections')
-    .description('Get available connections between chains/tokens')
-    .option('--from-chain <chainId>', 'Source chain ID')
-    .option('--to-chain <chainId>', 'Destination chain ID')
-    .option('--from-token <token>', 'Source token address')
+    .description('Check which token transfer routes exist between chains')
+    .option('--from-chain <chainId>', 'Source chain ID (e.g. 1)')
+    .option('--to-chain <chainId>', 'Destination chain ID (e.g. 42161)')
+    .option('--from-token <token>', 'Source token address (e.g. 0xa0b8...)')
     .option('--to-token <token>', 'Destination token address')
+    .addHelpText('after', `
+Examples:
+  $ lifi connections --from-chain 1 --to-chain 42161
+  $ lifi connections --from-chain 1 --to-chain 8453 --from-token USDC --json`)
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {

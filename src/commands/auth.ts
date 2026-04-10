@@ -8,11 +8,11 @@ import { withSpinner } from '../core/interactive.js';
 export function registerAuthCommand(program: Command): void {
   const auth = program
     .command('auth')
-    .description('Manage API key authentication');
+    .description('Manage API key (set via LIFI_API_KEY env var)');
 
   auth
     .command('show')
-    .description('Display current API key (masked)')
+    .description('Display current API key (masked) and its source')
     .action(async (_options, command) => {
       const opts = command.optsWithGlobals();
       try {
