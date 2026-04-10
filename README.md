@@ -108,14 +108,6 @@ lifi auth test                 # Validate key against the API
 lifi health                    # Check API connectivity and latency
 ```
 
-### Ask (Experimental)
-
-```bash
-lifi ask "What is the cheapest way to move USDC from Ethereum to Arbitrum?"
-```
-
-Requires an LLM API key. Coming soon.
-
 ## Output Modes
 
 | Mode | Trigger | Behaviour |
