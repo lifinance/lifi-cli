@@ -4,13 +4,13 @@ import os from 'node:os';
 import { CONFIG_DIR_NAME, CONFIG_FILE_NAME, ENV_API_KEY, ExitCode } from './constants.js';
 import { CliError } from './errors.js';
 
-export interface CliConfig {
+interface CliConfig {
   apiKey?: string;
   llmProvider?: string;
   llmApiKey?: string;
 }
 
-export function getConfigDir(): string {
+function getConfigDir(): string {
   const xdg = process.env.XDG_CONFIG_HOME;
   if (xdg) return path.join(xdg, CONFIG_DIR_NAME);
   return path.join(os.homedir(), `.${CONFIG_DIR_NAME}`);

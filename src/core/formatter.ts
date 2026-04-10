@@ -51,10 +51,3 @@ export function jsonOutput(data: unknown): string {
   return JSON.stringify(data, null, 2);
 }
 
-export function output(data: unknown, options: { json?: boolean }): void {
-  if (isJsonMode(options)) {
-    console.log(jsonOutput(data));
-  } else {
-    console.log(jsonOutput(data));
-  }
-}
