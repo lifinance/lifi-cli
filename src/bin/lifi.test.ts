@@ -53,6 +53,8 @@ describe('lifi entry point', () => {
     expect(commandNames).toContain('balance');
     expect(commandNames).toContain('allowance');
     expect(commandNames).toContain('ask');
+    expect(commandNames).toContain('chain');
+    expect(commandNames).toContain('health');
   });
 
   it('--help does not throw', () => {

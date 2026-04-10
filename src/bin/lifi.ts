@@ -12,6 +12,7 @@ import { registerGasCommand } from '../commands/gas.js';
 import { registerBalanceCommand } from '../commands/balance.js';
 import { registerAllowanceCommand } from '../commands/allowance.js';
 import { registerAskCommand } from '../commands/ask.js';
+import { registerHealthCommand } from '../commands/health.js';
 
 export function createProgram(): Command {
   const program = new Command();
@@ -36,6 +37,7 @@ export function createProgram(): Command {
   registerBalanceCommand(program);
   registerAllowanceCommand(program);
   registerAskCommand(program);
+  registerHealthCommand(program);
 
   return program;
 }

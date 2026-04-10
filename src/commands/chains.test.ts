@@ -75,3 +75,56 @@ describe('chains command', () => {
     expect(parsed.chains.every((c: any) => c.chainType === 'EVM')).toBe(true);
   });
 });
+
+describe('chain subcommand', () => {
+  let consoleOutput: string[];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consoleOutput = [];
+    vi.spyOn(console, 'log').mockImplementation((...args) => {
+      consoleOutput.push(args.join(' '));
+    });
+  });
+
+  it('looks up chain by numeric ID', async () => {
+    mockedApi.get.mockResolvedValue({ data: CHAINS_FIXTURE });
+    const program = createProgram();
+    await program.parseAsync(['node', 'test', 'chain', '137', '--json']);
+    const parsed = JSON.parse(consoleOutput.join(''));
+    expect(parsed.id).toBe(137);
+    expect(parsed.name).toBe('Polygon');
+  });
+
+  it('looks up chain by name (case-insensitive)', async () => {
+    mockedApi.get.mockResolvedValue({ data: CHAINS_FIXTURE });
+    const program = createProgram();
+    await program.parseAsync(['node', 'test', 'chain', 'ethereum', '--json']);
+    const parsed = JSON.parse(consoleOutput.join(''));
+    expect(parsed.id).toBe(1);
+    expect(parsed.name).toBe('Ethereum');
+  });
+
+  it('shows human-readable table for chain detail', async () => {
+    mockedApi.get.mockResolvedValue({ data: CHAINS_FIXTURE });
+    const program = createProgram();
+    await program.parseAsync(['node', 'test', 'chain', '1']);
+    const output = consoleOutput.join('\n');
+    expect(output).toContain('Ethereum');
+    expect(output).toContain('ETH');
+  });
+
+  it('errors when chain not found', async () => {
+    mockedApi.get.mockResolvedValue({ data: CHAINS_FIXTURE });
+    const program = createProgram();
+    let errorOutput = '';
+    vi.spyOn(console, 'error').mockImplementation((...args) => {
+      errorOutput += args.join(' ');
+    });
+    // handleError calls process.exit, so mock it
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    await program.parseAsync(['node', 'test', 'chain', 'nonexistent']);
+    expect(errorOutput).toContain('not found');
+    exitSpy.mockRestore();
+  });
+});
