@@ -42,7 +42,7 @@ Examples:
             const chainIds = Object.keys(data).slice(0, 30);
             const rows = chainIds.map((id) => {
               const g = data[id];
-              return [id, String(g?.standard || '-'), String(g?.fast || '-'), String(g?.fastest || '-')];
+              return [id, String(g?.standard ?? '-'), String(g?.fast ?? '-'), String(g?.fastest ?? '-')];
             });
             console.log(formatTable(['Chain ID', 'Standard (gwei)', 'Fast', 'Fastest'], rows));
             if (Object.keys(data).length > 30) {

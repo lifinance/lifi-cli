@@ -132,9 +132,12 @@ npm run dev            # tsup --watch
 - **Testing:** Each command has a co-located `.test.ts` file. Tests mock `src/core/http-client.ts` via `vi.mock`.
 - **API base:** `https://li.quest/v1` — all requests include `?integrator=lifi-cli`.
 
+## Code Quality Standards
+See `.claude/code-quality.md` for the full reference: strict TS flags, zero `any` policy, `??` vs `||`, enum patterns, error handling, testing conventions, and the dead code workflow.
+
 ## Verification Checklist
 Before reporting any task as complete, run:
 ```bash
-npm run typecheck && npm run lint && npm test
+npm run typecheck && npm run lint && npm test && npx knip
 ```
-All three must pass with zero errors.
+All four must pass with zero errors.

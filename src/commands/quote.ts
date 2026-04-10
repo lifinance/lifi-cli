@@ -66,8 +66,8 @@ Examples:
         } else {
           const estimate = data.estimate;
           const rows = [
-            ['You receive', `${formatAmount(estimate?.toAmount || '0', estimate?.toAmountDecimals || 18)} ${data.action?.toToken?.symbol || ''}`],
-            ['Bridge', data.toolDetails?.name || data.tool || 'N/A'],
+            ['You receive', `${formatAmount(estimate?.toAmount ?? '0', estimate?.toAmountDecimals ?? 18)} ${data.action?.toToken?.symbol ?? ''}`],
+            ['Bridge', data.toolDetails?.name ?? data.tool ?? 'N/A'],
             ['Est. time', estimate?.executionDuration ? `~${Math.round(estimate.executionDuration / 60)} min` : 'N/A'],
             ['Gas cost', estimate?.gasCosts?.[0]?.amountUSD ? `~$${estimate.gasCosts[0].amountUSD}` : 'N/A'],
             ['Slippage', `${Number(options['slippage']) * 100}%`],

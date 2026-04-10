@@ -3,7 +3,7 @@ import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
-import type { ToolsResponse, Bridge, Exchange } from '../types/index.js';
+import type { ToolsResponse } from '../types/index.js';
 
 export function registerToolsCommand(program: Command): void {
   program
@@ -28,11 +28,11 @@ Examples:
           console.log(jsonOutput(data));
         } else {
           console.log('\nBridges:');
-          const bridgeRows = (data.bridges || []).map((b: Bridge) => [b.key, b.name]);
+          const bridgeRows = data.bridges.map((b) => [b.key, b.name]);
           console.log(formatTable(['Key', 'Name'], bridgeRows));
 
           console.log('\nExchanges:');
-          const exchangeRows = (data.exchanges || []).map((e: Exchange) => [e.key, e.name]);
+          const exchangeRows = data.exchanges.map((e) => [e.key, e.name]);
           console.log(formatTable(['Key', 'Name'], exchangeRows));
 
           console.log('\n  Use keys with: lifi quote --allow-bridges <key> --allow-exchanges <key>');

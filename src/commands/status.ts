@@ -6,6 +6,7 @@ import { handleError, CliError } from '../core/errors.js';
 import { ExitCode } from '../core/constants.js';
 import type { StatusResponse, TransferStatus } from '../types/index.js';
 import { TERMINAL_STATUSES } from '../types/index.js';
+
 const MAX_POLL_ATTEMPTS = 60; // 60 × 5s = 5 minutes
 
 export function registerStatusCommand(program: Command): void {

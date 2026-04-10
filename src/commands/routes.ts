@@ -3,7 +3,7 @@ import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
-import type { Route, Step, RoutesResponse, RouteOrder } from '../types/index.js';
+import type { Route, RoutesResponse, RouteOrder } from '../types/index.js';
 
 export function registerRoutesCommand(program: Command): void {
   program
@@ -41,9 +41,9 @@ Examples:
           console.log(jsonOutput(data));
         } else {
           const routes: Route[] = data.routes ?? [];
-          const rows = routes.map((r: Route, i: number) => [
+          const rows = routes.map((r, i) => [
             String(i + 1),
-            r.steps.map((s: Step) => s.tool).join(' → '),
+            r.steps.map((s: { tool: string }) => s.tool).join(' → '),
             r.toAmountUSD ? `$${r.toAmountUSD}` : 'N/A',
             r.gasCostUSD ? `$${r.gasCostUSD}` : 'N/A',
           ]);
