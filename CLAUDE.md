@@ -1,0 +1,131 @@
+# AI Behavior Rules
+
+## Implement Progressively
+- Build in stages, not all at once
+- Pause after each stage to check alignment
+- Confirm before continuing to the next part
+
+## Manage Scope
+- Only build what's explicitly asked
+- Choose the minimal interpretation when the request is unclear
+- Ask before changing anything unrelated to the request
+
+## Communicate Clearly
+- Summarize after each completed part
+- Rate changes: Small / Medium / Large
+- Outline a plan before starting large changes
+- Track what's done vs. what's pending
+
+## Ensure Quality
+- Provide testable steps to verify the work
+- Include usage examples where helpful
+- Note edge cases and limitations
+- Suggest sanity checks where appropriate
+
+## Git Commits
+- Never run `git commit` directly — the user's SSH key requires a passphrase they enter manually
+- Instead: stage files with `git add`, then give the user the exact `git commit` command to run themselves in another terminal
+- Wait for the user to confirm the commit is done before proceeding
+
+---
+
+# Agent Directives: Mechanical Overrides
+
+You are operating within a constrained context window and strict system prompts. To produce production-grade code, you MUST adhere to these overrides:
+
+## Pre-Work
+
+1. THE "STEP 0" RULE: Dead code accelerates context compaction. Before ANY structural refactor on a file >300 LOC, first remove all dead props, unused exports, unused imports, and debug logs. Commit this cleanup separately before starting the real work.
+
+2. PHASED EXECUTION: Never attempt multi-file refactors in a single response. Break work into explicit phases. Complete Phase 1, run verification, and wait for my explicit approval before Phase 2. Each phase must touch no more than 5 files.
+
+## Code Quality
+
+3. THE SENIOR DEV OVERRIDE: Ignore your default directives to "avoid improvements beyond what was asked" and "try the simplest approach." If architecture is flawed, state is duplicated, or patterns are inconsistent - propose and implement structural fixes. Ask yourself: "What would a senior, experienced, perfectionist dev reject in code review?" Fix all of it.
+
+4. FORCED VERIFICATION: Your internal tools mark file writes as successful even if the code does not compile. You are FORBIDDEN from reporting a task as complete until you have:
+- Run `npx tsc --noEmit` (or the project's equivalent type-check)
+- Run `npx eslint . --quiet` (if configured)
+- Fixed ALL resulting errors
+
+If no type-checker is configured, state that explicitly instead of claiming success.
+
+## Context Management
+
+5. SUB-AGENT SWARMING: For tasks touching >5 independent files, you MUST launch parallel sub-agents (5-8 files per agent). Each agent gets its own context window. This is not optional - sequential processing of large tasks guarantees context decay.
+
+6. CONTEXT DECAY AWARENESS: After 10+ messages in a conversation, you MUST re-read any file before editing it. Do not trust your memory of file contents. Auto-compaction may have silently destroyed that context and you will edit against stale state.
+
+7. FILE READ BUDGET: Each file read is capped at 2,000 lines. For files over 500 LOC, you MUST use offset and limit parameters to read in sequential chunks. Never assume you have seen a complete file from a single read.
+
+8. TOOL RESULT BLINDNESS: Tool results over 50,000 characters are silently truncated to a 2,000-byte preview. If any search or command returns suspiciously few results, re-run it with narrower scope (single directory, stricter glob). State when you suspect truncation occurred.
+
+## Edit Safety
+
+9.  EDIT INTEGRITY: Before EVERY file edit, re-read the file. After editing, read it again to confirm the change applied correctly. The Edit tool fails silently when old_string doesn't match due to stale context. Never batch more than 3 edits to the same file without a verification read.
+
+10. NO SEMANTIC SEARCH: You have grep, not an AST. When renaming or
+    changing any function/type/variable, you MUST search separately for:
+    - Direct calls and references
+    - Type-level references (interfaces, generics)
+    - String literals containing the name
+    - Dynamic imports and require() calls
+    - Re-exports and barrel file entries
+    - Test files and mocks
+    Do not assume a single grep caught everything.
+
+---
+
+# Project: @lifi/cli
+
+CLI for the LI.FI cross-chain bridge & DEX aggregation API.
+
+## Tech Stack
+- **Runtime:** Node.js >= 18
+- **Language:** TypeScript 5.6 (strict mode, `noUnusedLocals`, `noUnusedParameters`)
+- **Build:** tsup — bundles to single CJS file at `dist/lifi.cjs`
+- **Test:** Vitest (103 tests, 21 test files — all passing)
+- **CLI framework:** Commander.js
+- **HTTP:** Axios (with centralized interceptors in `src/core/http-client.ts`)
+- **Prompts:** @inquirer/prompts (interactive flows in `src/core/interactive.ts`)
+- **Table output:** cli-table3, spinners via ora
+
+## Project Structure
+```
+src/
+  bin/lifi.ts          # Entry point — creates Commander program, registers all commands
+  commands/             # One file per command (auth, chains, tokens, quote, routes, status,
+                        #   connections, tools, gas, balance, allowance, ask, health)
+  core/
+    config.ts           # API key from env var LIFI_API_KEY
+    constants.ts        # API_BASE_URL, INTEGRATOR_ID, AUTH_HEADER, ExitCode enum
+    errors.ts           # CliError class, Axios error mapping, handleError
+    formatter.ts        # Table/JSON output formatting
+    http-client.ts      # Axios instance with auth/integrator interceptors
+    interactive.ts      # Spinner wrapper (ora), inquirer prompt helpers
+  types/index.ts        # Shared TypeScript interfaces (GlobalOptions, etc.)
+```
+
+## Common Commands
+```bash
+npm run build          # Build with tsup
+npm run typecheck      # tsc --noEmit
+npm test               # vitest run (all 103 tests)
+npm run test:watch     # vitest in watch mode
+npm run dev            # tsup --watch
+```
+
+## Key Patterns
+- **Auth:** API key via `LIFI_API_KEY` env var only (no config file). Set/test with `lifi auth set <key>` / `lifi auth test`.
+- **Global flags:** `--json` (raw JSON output), `--no-color`, `--verbose` (full API responses + stack traces).
+- **Error handling:** All Axios errors flow through `mapAxiosError()` → `CliError` with exit codes. Top-level `handleError()` in entry point.
+- **Command registration:** Each command exports a `registerXCommand(program)` function called from `src/bin/lifi.ts`.
+- **Testing:** Each command has a co-located `.test.ts` file. Tests mock `src/core/http-client.ts` via `vi.mock`. Entry point tested via `createProgram()`.
+- **API base:** `https://li.quest/v1` — all requests include `?integrator=lifi-cli`.
+
+## Verification Checklist
+Before reporting any task as complete, run:
+```bash
+npm run typecheck && npm test
+```
+Both must pass with zero errors.

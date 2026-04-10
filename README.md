@@ -7,9 +7,17 @@ A TypeScript CLI that wraps the [LI.FI REST API](https://li.quest) to give devel
 ## Quickstart
 
 ```bash
+git clone https://github.com/lifinance/lifi-cli.git
+cd lifi-cli
+npm install && npm run build
+node dist/lifi.cjs chains
+```
+
+Once published to npm:
+
+```bash
 npm install -g @lifi/cli
-# or run without installing
-npx @lifi/cli chains
+lifi chains
 ```
 
 No API key required — works immediately with public rate limits. Add a key for higher throughput.
@@ -136,10 +144,6 @@ All configuration is via environment variables. No config files needed.
 ```bash
 # LI.FI API key (higher rate limits)
 export LIFI_API_KEY=your_key_here
-
-# For "lifi ask" (coming soon)
-export LIFI_LLM_PROVIDER=claude    # or "openai"
-export LIFI_LLM_API_KEY=sk-ant-...
 ```
 
 Without `LIFI_API_KEY`, the CLI uses public rate limits (200 req/2hr). With a key, you get 200 req/min.

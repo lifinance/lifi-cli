@@ -1,5 +1,6 @@
-.claude
-.cursor
+.claude/
+.codex/
+.cursor/
 .cursorrules
 .cursorrules.md
 .cursorrules.txt
