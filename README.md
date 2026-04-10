@@ -95,14 +95,6 @@ lifi gas                       # Gas prices for all chains
 lifi gas 1                     # Detailed gas suggestion for Ethereum
 ```
 
-### Balance & Allowance
-
-```bash
-lifi balance 1 0xd8dA...                       # Native ETH balance
-lifi balance 1 0xd8dA... --token USDC          # ERC20 balance
-lifi allowance 1 USDC 0xd8dA...                # Check approval status
-```
-
 ### API Key Management
 
 ```bash
@@ -183,12 +175,9 @@ lifi token 1 USDC
 # 3. Get best quote
 lifi quote --from 1 --to 8453 --from-token USDC --to-token USDC --amount 1000000000 --from-address 0xYOUR_ADDRESS
 
-# 4. Check allowance
-lifi allowance 1 USDC 0xYOUR_ADDRESS
+# 4. (External) Approve tokens and sign transactionRequest with your wallet
 
-# 5. (External) Approve tokens and sign transactionRequest with your wallet
-
-# 6. Track progress
+# 5. Track progress
 lifi status 0xTX_HASH --watch
 ```
 

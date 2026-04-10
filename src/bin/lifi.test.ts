@@ -47,8 +47,6 @@ describe('lifi entry point', () => {
     expect(commandNames).toContain('status');
     expect(commandNames).toContain('connections');
     expect(commandNames).toContain('gas');
-    expect(commandNames).toContain('balance');
-    expect(commandNames).toContain('allowance');
     expect(commandNames).toContain('chain');
     expect(commandNames).toContain('health');
   });

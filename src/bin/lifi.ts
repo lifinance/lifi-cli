@@ -9,8 +9,6 @@ import { registerStatusCommand } from '../commands/status.js';
 import { registerConnectionsCommand } from '../commands/connections.js';
 import { registerToolsCommand } from '../commands/tools.js';
 import { registerGasCommand } from '../commands/gas.js';
-import { registerBalanceCommand } from '../commands/balance.js';
-import { registerAllowanceCommand } from '../commands/allowance.js';
 import { registerHealthCommand } from '../commands/health.js';
 
 export function createProgram(): Command {
@@ -43,8 +41,6 @@ export function createProgram(): Command {
   registerConnectionsCommand(program);
   registerToolsCommand(program);
   registerGasCommand(program);
-  registerBalanceCommand(program);
-  registerAllowanceCommand(program);
   registerHealthCommand(program);
 
   return program;
