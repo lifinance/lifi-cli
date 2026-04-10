@@ -45,7 +45,7 @@ You are operating within a constrained context window and strict system prompts.
 
 4. FORCED VERIFICATION: Your internal tools mark file writes as successful even if the code does not compile. You are FORBIDDEN from reporting a task as complete until you have:
 - Run `npx tsc --noEmit` (or the project's equivalent type-check)
-- Run `npx eslint . --quiet` (if configured)
+- Run `npx biome check src/` (linter)
 - Fixed ALL resulting errors
 
 If no type-checker is configured, state that explicitly instead of claiming success.
@@ -82,20 +82,27 @@ CLI for the LI.FI cross-chain bridge & DEX aggregation API.
 
 ## Tech Stack
 - **Runtime:** Node.js >= 18
-- **Language:** TypeScript 5.6 (strict mode, `noUnusedLocals`, `noUnusedParameters`)
+- **Language:** TypeScript 5.6 (strict mode + `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `noImplicitReturns`)
+- **Linter:** Biome (`npx biome check src/` — `noExplicitAny: error`)
 - **Build:** tsup — bundles to single CJS file at `dist/lifi.cjs`
-- **Test:** Vitest (103 tests, 21 test files — all passing)
+- **Test:** Vitest (97 tests, 18 test files — all passing)
 - **CLI framework:** Commander.js
 - **HTTP:** Axios (with centralized interceptors in `src/core/http-client.ts`)
 - **Prompts:** @inquirer/prompts (interactive flows in `src/core/interactive.ts`)
 - **Table output:** cli-table3, spinners via ora
+
+## Type Safety Rules
+- **Zero `any`** — all API responses are typed via interfaces in `src/types/index.ts`
+- **Enum-like strings** use union types: `ChainType`, `TransferStatus`, `RouteOrder`
+- **Commander `.choices()`** validates enum options at runtime (with `satisfies` for compile-time safety)
+- **`TERMINAL_STATUSES`** is a typed `ReadonlySet<TransferStatus>` in `src/types/index.ts`
 
 ## Project Structure
 ```
 src/
   bin/lifi.ts          # Entry point — creates Commander program, registers all commands
   commands/             # One file per command (auth, chains, tokens, quote, routes, status,
-                        #   connections, tools, gas, balance, allowance, ask, health)
+                        #   connections, tools, gas, health)
   core/
     config.ts           # API key from env var LIFI_API_KEY
     constants.ts        # API_BASE_URL, INTEGRATOR_ID, AUTH_HEADER, ExitCode enum
@@ -103,29 +110,31 @@ src/
     formatter.ts        # Table/JSON output formatting
     http-client.ts      # Axios instance with auth/integrator interceptors
     interactive.ts      # Spinner wrapper (ora), inquirer prompt helpers
-  types/index.ts        # Shared TypeScript interfaces (GlobalOptions, etc.)
+  types/index.ts        # All TypeScript interfaces: Chain, Token, Route, Quote, Status, etc.
 ```
 
 ## Common Commands
 ```bash
 npm run build          # Build with tsup
-npm run typecheck      # tsc --noEmit
-npm test               # vitest run (all 103 tests)
+npm run typecheck      # tsc --noEmit (strict)
+npm run lint           # biome check src/
+npm run lint:fix       # biome check --write src/
+npm test               # vitest run
 npm run test:watch     # vitest in watch mode
 npm run dev            # tsup --watch
 ```
 
 ## Key Patterns
-- **Auth:** API key via `LIFI_API_KEY` env var only (no config file). Set/test with `lifi auth set <key>` / `lifi auth test`.
-- **Global flags:** `--json` (raw JSON output), `--no-color`, `--verbose` (full API responses + stack traces).
-- **Error handling:** All Axios errors flow through `mapAxiosError()` → `CliError` with exit codes. Top-level `handleError()` in entry point.
+- **Auth:** API key via `LIFI_API_KEY` env var only (no config file). Check with `lifi auth show` / `lifi auth test`.
+- **Global flags:** `--json`, `--no-color`, `--no-input` (disable prompts), `--verbose`.
+- **Error handling:** All Axios errors flow through `mapAxiosError()` → `CliError` with exit codes 0-5.
 - **Command registration:** Each command exports a `registerXCommand(program)` function called from `src/bin/lifi.ts`.
-- **Testing:** Each command has a co-located `.test.ts` file. Tests mock `src/core/http-client.ts` via `vi.mock`. Entry point tested via `createProgram()`.
+- **Testing:** Each command has a co-located `.test.ts` file. Tests mock `src/core/http-client.ts` via `vi.mock`.
 - **API base:** `https://li.quest/v1` — all requests include `?integrator=lifi-cli`.
 
 ## Verification Checklist
 Before reporting any task as complete, run:
 ```bash
-npm run typecheck && npm test
+npm run typecheck && npm run lint && npm test
 ```
-Both must pass with zero errors.
+All three must pass with zero errors.

@@ -4,8 +4,8 @@ import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError, CliError } from '../core/errors.js';
 import { ExitCode } from '../core/constants.js';
-
-const TERMINAL_STATUSES = new Set(['DONE', 'FAILED', 'CANCELLED', 'NOT_FOUND', 'INVALID']);
+import type { StatusResponse, TransferStatus } from '../types/index.js';
+import { TERMINAL_STATUSES } from '../types/index.js';
 const MAX_POLL_ATTEMPTS = 60; // 60 × 5s = 5 minutes
 
 export function registerStatusCommand(program: Command): void {
@@ -25,23 +25,24 @@ Examples:
       const opts = command.optsWithGlobals();
       try {
         const params: Record<string, string> = { txHash };
-        if (options.bridge) params.bridge = options.bridge;
-        if (options.fromChain) params.fromChain = options.fromChain;
-        if (options.toChain) params.toChain = options.toChain;
+        if (options['bridge']) params['bridge'] = options['bridge'] as string;
+        if (options['fromChain']) params['fromChain'] = options['fromChain'] as string;
+        if (options['toChain']) params['toChain'] = options['toChain'] as string;
 
-        const fetchStatus = () => api.get('/status', { params });
+        const fetchStatus = () => api.get<StatusResponse>('/status', { params });
 
         if (options.watch) {
-          let lastData: unknown = null;
-          let status = 'PENDING';
+          let lastData: StatusResponse | null = null;
+          let status: TransferStatus = 'PENDING';
 
           for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-            const { data } = await withSpinner(`Status: ${status} (${attempt + 1}/${MAX_POLL_ATTEMPTS})`, fetchStatus);
-            status = data.status || 'UNKNOWN';
+            const response = await withSpinner(`Status: ${status} (${attempt + 1}/${MAX_POLL_ATTEMPTS})`, fetchStatus);
+            const data: StatusResponse = response.data;
+            status = data.status ?? 'UNKNOWN';
             lastData = data;
 
             if (!isJsonMode(opts)) {
-              console.log(`Status: ${status} | Substatus: ${data.substatus || 'N/A'}`);
+              console.log(`Status: ${status} | Substatus: ${data.substatus ?? 'N/A'}`);
             }
 
             if (TERMINAL_STATUSES.has(status)) break;
@@ -66,9 +67,9 @@ Examples:
             console.log(jsonOutput(data));
           } else {
             const rows = [
-              ['Status', data.status || 'N/A'],
-              ['Substatus', data.substatus || 'N/A'],
-              ['Bridge', data.tool || 'N/A'],
+              ['Status', data.status ?? 'N/A'],
+              ['Substatus', data.substatus ?? 'N/A'],
+              ['Bridge', data.tool ?? 'N/A'],
             ];
             console.log(formatTable(['Field', 'Value'], rows));
           }

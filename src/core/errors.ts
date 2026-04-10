@@ -2,7 +2,7 @@ import { ExitCode } from './constants.js';
 
 export class CliError extends Error {
   public readonly exitCode: number;
-  public readonly hint?: string;
+  public readonly hint?: string | undefined;
 
   constructor(message: string, exitCode: number = ExitCode.General, hint?: string) {
     super(message);
@@ -69,7 +69,7 @@ export function mapAxiosError(error: AxiosLikeError): CliError {
 }
 
 export function handleError(error: unknown): never {
-  const verbose = process.env.LIFI_VERBOSE === '1';
+  const verbose = process.env['LIFI_VERBOSE'] === '1';
 
   if (error instanceof CliError) {
     console.error(formatError(error));

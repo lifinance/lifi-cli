@@ -3,6 +3,7 @@ import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
+import type { Token, TokensResponse } from '../types/index.js';
 
 export function registerTokensCommand(program: Command): void {
   program
@@ -19,19 +20,22 @@ Examples:
       const opts = command.optsWithGlobals();
       try {
         const params: Record<string, string> = {};
-        if (options.chain) params.chains = options.chain;
+        if (options['chain']) params['chains'] = options['chain'] as string;
 
         const { data } = await withSpinner('Fetching tokens...', () =>
-          api.get('/tokens', { params }),
+          api.get<TokensResponse>('/tokens', { params }),
         );
 
-        if (options.minPrice) {
-          const minPrice = Number(options.minPrice);
+        if (options['minPrice']) {
+          const minPrice = Number(options['minPrice']);
           const tokens = data.tokens;
           for (const chainId of Object.keys(tokens)) {
-            tokens[chainId] = tokens[chainId].filter(
-              (t: any) => Number(t.priceUSD || 0) >= minPrice,
-            );
+            const chainTokens = tokens[chainId];
+            if (chainTokens) {
+              tokens[chainId] = chainTokens.filter(
+                (t: Token) => Number(t.priceUSD ?? 0) >= minPrice,
+              );
+            }
           }
         }
 
@@ -39,14 +43,17 @@ Examples:
           console.log(jsonOutput(data));
         } else {
           const tokens = data.tokens;
-          const allTokens: any[] = [];
+          const allTokens: Token[] = [];
           for (const chainId of Object.keys(tokens)) {
-            allTokens.push(...tokens[chainId]);
+            const chainTokens = tokens[chainId];
+            if (chainTokens) {
+              allTokens.push(...chainTokens);
+            }
           }
-          const rows = allTokens.slice(0, 50).map((t: any) => [
+          const rows = allTokens.slice(0, 50).map((t: Token) => [
             t.symbol,
             t.name,
-            t.address?.slice(0, 10) + '...',
+            t.address.slice(0, 10) + '...',
             String(t.decimals),
             String(t.chainId),
           ]);
@@ -73,7 +80,7 @@ Examples:
       const opts = command.optsWithGlobals();
       try {
         const { data } = await withSpinner('Fetching token...', () =>
-          api.get('/token', { params: { chain, token: symbol } }),
+          api.get<Token>('/token', { params: { chain, token: symbol } }),
         );
 
         if (isJsonMode(opts)) {
@@ -85,7 +92,7 @@ Examples:
             ['Address', data.address],
             ['Decimals', String(data.decimals)],
             ['Chain ID', String(data.chainId)],
-            ['Price (USD)', data.priceUSD || 'N/A'],
+            ['Price (USD)', data.priceUSD ?? 'N/A'],
           ];
           console.log(formatTable(['Field', 'Value'], rows));
         }

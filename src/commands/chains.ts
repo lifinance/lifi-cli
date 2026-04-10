@@ -1,15 +1,16 @@
-import type { Command } from 'commander';
+import { type Command, Option } from 'commander';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError, CliError } from '../core/errors.js';
 import { ExitCode } from '../core/constants.js';
+import type { Chain, ChainType } from '../types/index.js';
 
 export function registerChainsCommand(program: Command): void {
   program
     .command('chains')
     .description('List all supported blockchain networks')
-    .option('--type <type>', 'Filter by chain type: EVM, SVM')
+    .addOption(new Option('--type <type>', 'Filter by chain type').choices(['EVM', 'SVM'] satisfies ChainType[]))
     .addHelpText('after', `
 Examples:
   $ lifi chains                    # All chains
@@ -18,21 +19,24 @@ Examples:
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
-        const { data } = await withSpinner('Fetching chains...', () => api.get('/chains'));
+        const { data } = await withSpinner('Fetching chains...', () =>
+          api.get<{ chains: Chain[] }>('/chains'),
+        );
 
-        let chains = data.chains || data;
+        let chains: Chain[] = data.chains;
         if (options.type) {
-          chains = chains.filter((c: any) => c.chainType === options.type);
+          const type = options.type as ChainType;
+          chains = chains.filter((c) => c.chainType === type);
         }
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput({ chains }));
         } else {
-          const rows = chains.map((c: any) => [
+          const rows = chains.map((c) => [
             String(c.id),
             c.name,
             c.chainType,
-            c.nativeToken?.symbol || '-',
+            c.nativeToken.symbol,
           ]);
           console.log(formatTable(['ID', 'Name', 'Type', 'Native Token'], rows));
           console.log('\n  Next: lifi chain <id>  or  lifi tokens --chain <id>');
@@ -53,14 +57,16 @@ Examples:
     .action(async (idOrName, _options, command) => {
       const opts = command.optsWithGlobals();
       try {
-        const { data } = await withSpinner('Fetching chains...', () => api.get('/chains'));
+        const { data } = await withSpinner('Fetching chains...', () =>
+          api.get<{ chains: Chain[] }>('/chains'),
+        );
 
-        const allChains: any[] = data.chains || data;
+        const allChains: Chain[] = data.chains;
         const isNumeric = /^\d+$/.test(idOrName);
 
         const chain = isNumeric
-          ? allChains.find((c: any) => c.id === Number(idOrName))
-          : allChains.find((c: any) => c.name.toLowerCase() === idOrName.toLowerCase());
+          ? allChains.find((c) => c.id === Number(idOrName))
+          : allChains.find((c) => c.name.toLowerCase() === idOrName.toLowerCase());
 
         if (!chain) {
           handleError(new CliError(
@@ -68,6 +74,7 @@ Examples:
             ExitCode.InvalidArgs,
             'Run: lifi chains  to see all available chains',
           ));
+          return;
         }
 
         if (isJsonMode(opts)) {
@@ -76,9 +83,9 @@ Examples:
           const rows = [
             ['ID', String(chain.id)],
             ['Name', chain.name],
-            ['Key', chain.key || '-'],
+            ['Key', chain.key],
             ['Type', chain.chainType],
-            ['Native Token', chain.nativeToken?.symbol || '-'],
+            ['Native Token', chain.nativeToken.symbol],
             ['Mainnet', chain.mainnet ? 'Yes' : 'No'],
           ];
           console.log(formatTable(['Field', 'Value'], rows));

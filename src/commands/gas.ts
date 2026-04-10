@@ -3,6 +3,7 @@ import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
+import type { GasPrices, GasSuggestion } from '../types/index.js';
 
 export function registerGasCommand(program: Command): void {
   program
@@ -18,12 +19,12 @@ Examples:
       try {
         if (chain) {
           const { data } = await withSpinner(`Fetching gas for chain ${chain}...`, () =>
-            api.get(`/gas/suggestion/${chain}`),
+            api.get<GasSuggestion>(`/gas/suggestion/${chain}`),
           );
           if (isJsonMode(opts)) {
             console.log(jsonOutput(data));
           } else {
-            const rec = data.recommended || {};
+            const rec = data.recommended;
             const rows = [
               ['Token', rec.token?.symbol || 'N/A'],
               ['Recommended cost', rec.amountUsd ? `$${rec.amountUsd}` : 'N/A'],
@@ -33,7 +34,7 @@ Examples:
           }
         } else {
           const { data } = await withSpinner('Fetching gas prices...', () =>
-            api.get('/gas/prices'),
+            api.get<GasPrices>('/gas/prices'),
           );
           if (isJsonMode(opts)) {
             console.log(jsonOutput(data));
@@ -41,7 +42,7 @@ Examples:
             const chainIds = Object.keys(data).slice(0, 30);
             const rows = chainIds.map((id) => {
               const g = data[id];
-              return [id, String(g.standard || '-'), String(g.fast || '-'), String(g.fastest || '-')];
+              return [id, String(g?.standard || '-'), String(g?.fast || '-'), String(g?.fastest || '-')];
             });
             console.log(formatTable(['Chain ID', 'Standard (gwei)', 'Fast', 'Fastest'], rows));
             if (Object.keys(data).length > 30) {

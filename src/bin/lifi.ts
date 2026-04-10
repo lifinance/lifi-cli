@@ -26,14 +26,14 @@ export function createProgram(): Command {
 
   program.hook('preAction', (thisCommand) => {
     const opts = thisCommand.opts();
-    if (opts.color === false) {
-      process.env.NO_COLOR = '1';
+    if (opts['color'] === false) {
+      process.env['NO_COLOR'] = '1';
     }
-    if (opts.verbose) {
-      process.env.LIFI_VERBOSE = '1';
+    if (opts['verbose']) {
+      process.env['LIFI_VERBOSE'] = '1';
     }
-    if (opts.input === false) {
-      process.env.LIFI_NO_INPUT = '1';
+    if (opts['input'] === false) {
+      process.env['LIFI_NO_INPUT'] = '1';
     }
   });
 
@@ -51,7 +51,7 @@ export function createProgram(): Command {
   return program;
 }
 
-if (process.env.VITEST === undefined) {
+if (process.env['VITEST'] === undefined) {
   const program = createProgram();
   program.parseAsync(process.argv).catch(handleError);
 }

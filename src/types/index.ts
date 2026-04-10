@@ -3,3 +3,190 @@ export interface GlobalOptions {
   verbose?: boolean;
   noColor?: boolean;
 }
+
+// --- Chain types ---
+
+export interface NativeToken {
+  address: string;
+  chainId: number;
+  symbol: string;
+  decimals: number;
+  name: string;
+  coinKey?: string;
+  logoURI?: string;
+  priceUSD?: string;
+}
+
+export interface Chain {
+  id: number;
+  key: string;
+  name: string;
+  chainType: ChainType;
+  coin: string;
+  mainnet: boolean;
+  logoURI?: string;
+  nativeToken: NativeToken;
+  metamask?: {
+    chainId: string;
+    blockExplorerUrls: string[];
+    chainName: string;
+    nativeCurrency: { name: string; symbol: string; decimals: number };
+    rpcUrls: string[];
+  };
+  diamondAddress?: string;
+}
+
+export type ChainType = 'EVM' | 'SVM';
+
+// --- Token types ---
+
+export interface Token {
+  address: string;
+  chainId: number;
+  symbol: string;
+  decimals: number;
+  name: string;
+  coinKey?: string;
+  logoURI?: string;
+  priceUSD?: string;
+  marketCapUSD?: number;
+  volumeUSD24H?: number;
+  tags?: string[];
+  verificationStatus?: string;
+}
+
+export interface TokensResponse {
+  tokens: Record<string, Token[]>;
+}
+
+// --- Quote types ---
+
+export interface QuoteEstimate {
+  toAmount: string;
+  toAmountMin?: string;
+  toAmountDecimals?: number;
+  fromAmountUSD?: string;
+  toAmountUSD?: string;
+  executionDuration?: number;
+  gasCosts?: Array<{ amount?: string; amountUSD?: string; token?: { symbol: string } }>;
+  feeCosts?: Array<{ name?: string; amountUSD?: string; percentage?: string }>;
+}
+
+export interface QuoteAction {
+  fromToken?: Token;
+  toToken?: Token;
+  fromAmount?: string;
+  slippage?: number;
+  fromChainId?: number;
+  toChainId?: number;
+}
+
+export interface QuoteResponse {
+  tool: string;
+  toolDetails?: { key: string; name: string; logoURI?: string };
+  action?: QuoteAction;
+  estimate?: QuoteEstimate;
+  transactionRequest?: Record<string, unknown>;
+  includedSteps?: Step[];
+}
+
+// --- Route types ---
+
+export interface Step {
+  type: string;
+  tool: string;
+  toolDetails?: { key: string; name: string };
+}
+
+export interface Route {
+  steps: Step[];
+  toAmountUSD?: string;
+  gasCostUSD?: string;
+  toAmount?: string;
+}
+
+export interface RoutesResponse {
+  routes: Route[];
+}
+
+// --- Route order ---
+
+export type RouteOrder = 'CHEAPEST' | 'FASTEST' | 'SAFEST' | 'RECOMMENDED';
+
+// --- Status types ---
+
+export type TransferStatus = 'PENDING' | 'DONE' | 'FAILED' | 'CANCELLED' | 'NOT_FOUND' | 'INVALID' | 'UNKNOWN';
+
+export const TERMINAL_STATUSES: ReadonlySet<TransferStatus> = new Set<TransferStatus>([
+  'DONE', 'FAILED', 'CANCELLED', 'NOT_FOUND', 'INVALID',
+]);
+
+export interface StatusResponse {
+  status: TransferStatus;
+  substatus?: string;
+  tool?: string;
+  sending?: Record<string, unknown>;
+  receiving?: Record<string, unknown>;
+}
+
+// --- Connection types ---
+
+export interface Connection {
+  fromChainId: number;
+  toChainId: number;
+  fromToken?: Token;
+  toToken?: Token;
+  fromTokens?: Token[];
+  toTokens?: Token[];
+}
+
+export interface ConnectionsResponse {
+  connections: Connection[];
+}
+
+// --- Tools types ---
+
+export interface Bridge {
+  key: string;
+  name: string;
+  logoURI?: string;
+  supportedChains?: Array<{ fromChainId: number; toChainId: number }>;
+}
+
+export interface Exchange {
+  key: string;
+  name: string;
+  logoURI?: string;
+  supportedChains?: number[];
+}
+
+export interface ToolsResponse {
+  bridges: Bridge[];
+  exchanges: Exchange[];
+}
+
+// --- Gas types ---
+
+export interface GasPrices {
+  [chainId: string]: {
+    standard: number;
+    fast: number;
+    fastest: number;
+    lastUpdate?: number;
+  };
+}
+
+export interface GasSuggestion {
+  recommended: {
+    token: NativeToken;
+    amount: string;
+    amountUsd: string;
+  };
+  limit?: {
+    token: NativeToken;
+    amount: string;
+    amountUsd: string;
+  };
+  available: boolean;
+  fromAmount?: string;
+}

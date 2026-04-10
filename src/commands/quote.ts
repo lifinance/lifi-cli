@@ -1,14 +1,15 @@
-import type { Command } from 'commander';
+import { type Command, Option } from 'commander';
 import { input } from '@inquirer/prompts';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable, formatAmount } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError, CliError } from '../core/errors.js';
 import { ExitCode } from '../core/constants.js';
+import type { QuoteResponse, RouteOrder } from '../types/index.js';
 
 async function promptIfMissing(value: string | undefined, label: string): Promise<string> {
   if (value) return value;
-  if (process.env.LIFI_NO_INPUT === '1') {
+  if (process.env['LIFI_NO_INPUT'] === '1') {
     throw new CliError(`Missing required option: ${label}`, ExitCode.InvalidArgs, 'Pass all required flags when using --no-input');
   }
   return input({ message: `${label}:` });
@@ -25,7 +26,7 @@ export function registerQuoteCommand(program: Command): void {
     .option('--amount <amount>', 'Amount in smallest unit (e.g. 1000000 for 1 USDC)')
     .option('--from-address <address>', 'Sender wallet address (0x...)')
     .option('--slippage <slippage>', 'Max slippage as decimal (e.g. 0.03 for 3%)', '0.03')
-    .option('--order <order>', 'Route preference: CHEAPEST, FASTEST, or SAFEST')
+    .addOption(new Option('--order <order>', 'Route preference').choices(['CHEAPEST', 'FASTEST', 'SAFEST', 'RECOMMENDED'] satisfies RouteOrder[]))
     .option('--allow-bridges <keys>', 'Only use these bridges (comma-separated keys from lifi tools)')
     .option('--allow-exchanges <keys>', 'Only use these exchanges (comma-separated keys from lifi tools)')
     .addHelpText('after', `
@@ -52,24 +53,24 @@ Examples:
           fromAddress,
           slippage: options.slippage,
         };
-        if (options.order) params.order = options.order;
-        if (options.allowBridges) params.allowBridges = options.allowBridges;
-        if (options.allowExchanges) params.allowExchanges = options.allowExchanges;
+        if (options['order']) params['order'] = options['order'] as string;
+        if (options['allowBridges']) params['allowBridges'] = options['allowBridges'] as string;
+        if (options['allowExchanges']) params['allowExchanges'] = options['allowExchanges'] as string;
 
         const { data } = await withSpinner('Fetching quote...', () =>
-          api.get('/quote', { params }),
+          api.get<QuoteResponse>('/quote', { params }),
         );
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
         } else {
-          const estimate = data.estimate || {};
+          const estimate = data.estimate;
           const rows = [
-            ['You receive', `${formatAmount(estimate.toAmount || '0', estimate.toAmountDecimals || 18)} ${data.action?.toToken?.symbol || ''}`],
+            ['You receive', `${formatAmount(estimate?.toAmount || '0', estimate?.toAmountDecimals || 18)} ${data.action?.toToken?.symbol || ''}`],
             ['Bridge', data.toolDetails?.name || data.tool || 'N/A'],
-            ['Est. time', estimate.executionDuration ? `~${Math.round(estimate.executionDuration / 60)} min` : 'N/A'],
-            ['Gas cost', estimate.gasCosts?.[0]?.amountUSD ? `~$${estimate.gasCosts[0].amountUSD}` : 'N/A'],
-            ['Slippage', `${Number(options.slippage) * 100}%`],
+            ['Est. time', estimate?.executionDuration ? `~${Math.round(estimate.executionDuration / 60)} min` : 'N/A'],
+            ['Gas cost', estimate?.gasCosts?.[0]?.amountUSD ? `~$${estimate.gasCosts[0].amountUSD}` : 'N/A'],
+            ['Slippage', `${Number(options['slippage']) * 100}%`],
           ];
           console.log(formatTable(['', ''], rows));
           console.log('\n  Sign the transactionRequest with your wallet to execute.');

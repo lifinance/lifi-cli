@@ -1,8 +1,9 @@
-import type { Command } from 'commander';
+import { type Command, Option } from 'commander';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
+import type { Route, Step, RoutesResponse, RouteOrder } from '../types/index.js';
 
 export function registerRoutesCommand(program: Command): void {
   program
@@ -14,7 +15,7 @@ export function registerRoutesCommand(program: Command): void {
     .option('--to-token <token>', 'Token to receive — symbol or address')
     .option('--amount <amount>', 'Amount in smallest unit (e.g. 1000000 for 1 USDC)')
     .option('--from-address <address>', 'Sender wallet address (0x...)')
-    .option('--order <order>', 'Sort preference: CHEAPEST, FASTEST, or SAFEST')
+    .addOption(new Option('--order <order>', 'Sort preference').choices(['CHEAPEST', 'FASTEST', 'SAFEST', 'RECOMMENDED'] satisfies RouteOrder[]))
     .addHelpText('after', `
 Examples:
   $ lifi routes --from 1 --to 42161 --from-token USDC --to-token USDC --amount 1000000000 --json
@@ -33,16 +34,16 @@ Examples:
         };
 
         const { data } = await withSpinner('Fetching routes...', () =>
-          api.post('/advanced/routes', body),
+          api.post<RoutesResponse>('/advanced/routes', body),
         );
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
         } else {
-          const routes = data.routes || [];
-          const rows = routes.map((r: any, i: number) => [
+          const routes: Route[] = data.routes ?? [];
+          const rows = routes.map((r: Route, i: number) => [
             String(i + 1),
-            (r.steps || []).map((s: any) => s.tool).join(' → '),
+            r.steps.map((s: Step) => s.tool).join(' → '),
             r.toAmountUSD ? `$${r.toAmountUSD}` : 'N/A',
             r.gasCostUSD ? `$${r.gasCostUSD}` : 'N/A',
           ]);

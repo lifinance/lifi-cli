@@ -3,6 +3,7 @@ import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
+import type { Connection, ConnectionsResponse } from '../types/index.js';
 
 export function registerConnectionsCommand(program: Command): void {
   program
@@ -20,28 +21,28 @@ Examples:
       const opts = command.optsWithGlobals();
       try {
         const params: Record<string, string> = {};
-        if (options.fromChain) params.fromChain = options.fromChain;
-        if (options.toChain) params.toChain = options.toChain;
-        if (options.fromToken) params.fromToken = options.fromToken;
-        if (options.toToken) params.toToken = options.toToken;
+        if (options['fromChain']) params['fromChain'] = options['fromChain'] as string;
+        if (options['toChain']) params['toChain'] = options['toChain'] as string;
+        if (options['fromToken']) params['fromToken'] = options['fromToken'] as string;
+        if (options['toToken']) params['toToken'] = options['toToken'] as string;
 
         const { data } = await withSpinner('Fetching connections...', () =>
-          api.get('/connections', { params }),
+          api.get<ConnectionsResponse>('/connections', { params }),
         );
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
         } else {
-          const connections = data.connections || [];
+          const connections: Connection[] = data.connections ?? [];
           if (connections.length === 0) {
             console.log('No connections found for the given filters.');
             return;
           }
-          const rows = connections.slice(0, 50).map((c: any) => [
-            String(c.fromChainId || '-'),
-            String(c.toChainId || '-'),
-            c.fromToken?.symbol || '-',
-            c.toToken?.symbol || '-',
+          const rows = connections.slice(0, 50).map((c: Connection) => [
+            String(c.fromChainId),
+            String(c.toChainId),
+            c.fromToken?.symbol ?? '-',
+            c.toToken?.symbol ?? '-',
           ]);
           console.log(formatTable(['From Chain', 'To Chain', 'From Token', 'To Token'], rows));
           if (connections.length > 50) {
