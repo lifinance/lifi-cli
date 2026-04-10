@@ -13,10 +13,15 @@ export function registerToolsCommand(program: Command): void {
 Examples:
   $ lifi tools
   $ lifi tools --json | jq '.bridges[] | .key'`)
-    .action(async (_options, command) => {
+    .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
-        const { data } = await withSpinner('Fetching tools...', () => api.get('/tools'));
+        const params: Record<string, string> = {};
+        if (options.chain) params.chains = options.chain;
+
+        const { data } = await withSpinner('Fetching tools...', () =>
+          api.get('/tools', { params }),
+        );
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));

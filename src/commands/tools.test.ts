@@ -54,7 +54,7 @@ describe('tools command', () => {
     mockedApi.get.mockResolvedValue({ data: TOOLS_FIXTURE });
     const program = createProgram();
     await program.parseAsync(['node', 'test', 'tools', '--json']);
-    expect(mockedApi.get).toHaveBeenCalledWith('/tools');
+    expect(mockedApi.get).toHaveBeenCalledWith('/tools', expect.objectContaining({ params: {} }));
     expect(consoleOutput.length).toBeGreaterThan(0);
   });
 

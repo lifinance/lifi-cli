@@ -2,7 +2,11 @@ import type { Command } from 'commander';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
-import { handleError } from '../core/errors.js';
+import { handleError, CliError } from '../core/errors.js';
+import { ExitCode } from '../core/constants.js';
+
+const TERMINAL_STATUSES = new Set(['DONE', 'FAILED', 'CANCELLED', 'NOT_FOUND', 'INVALID']);
+const MAX_POLL_ATTEMPTS = 60; // 60 × 5s = 5 minutes
 
 export function registerStatusCommand(program: Command): void {
   program
@@ -11,7 +15,7 @@ export function registerStatusCommand(program: Command): void {
     .option('--bridge <bridge>', 'Bridge key hint to speed up lookup (e.g. stargate, hop, across)')
     .option('--from-chain <chainId>', 'Source chain ID (e.g. 1)')
     .option('--to-chain <chainId>', 'Destination chain ID (e.g. 42161)')
-    .option('--watch', 'Poll every 5s until DONE or FAILED')
+    .option('--watch', 'Poll every 5s until DONE or FAILED (max 5 min)')
     .addHelpText('after', `
 Examples:
   $ lifi status 0xabc123def456...
@@ -28,18 +32,33 @@ Examples:
         const fetchStatus = () => api.get('/status', { params });
 
         if (options.watch) {
+          let lastData: unknown = null;
           let status = 'PENDING';
-          while (status !== 'DONE' && status !== 'FAILED') {
-            const { data } = await withSpinner(`Status: ${status}`, fetchStatus);
+
+          for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+            const { data } = await withSpinner(`Status: ${status} (${attempt + 1}/${MAX_POLL_ATTEMPTS})`, fetchStatus);
             status = data.status || 'UNKNOWN';
-            if (isJsonMode(opts)) {
-              console.log(jsonOutput(data));
-            } else {
+            lastData = data;
+
+            if (!isJsonMode(opts)) {
               console.log(`Status: ${status} | Substatus: ${data.substatus || 'N/A'}`);
             }
-            if (status !== 'DONE' && status !== 'FAILED') {
-              await new Promise((r) => setTimeout(r, 5000));
-            }
+
+            if (TERMINAL_STATUSES.has(status)) break;
+
+            await new Promise((r) => setTimeout(r, 5000));
+          }
+
+          if (isJsonMode(opts)) {
+            console.log(jsonOutput(lastData));
+          }
+
+          if (!TERMINAL_STATUSES.has(status)) {
+            throw new CliError(
+              `Polling timed out after ${MAX_POLL_ATTEMPTS * 5}s — last status: ${status}`,
+              ExitCode.General,
+              'Try again with: lifi status ' + txHash + ' --watch',
+            );
           }
         } else {
           const { data } = await withSpinner('Checking status...', fetchStatus);
