@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import { handleError } from '../core/errors.js';
-import { saveConfig, getConfigPath, getApiKey, maskKey } from '../core/config.js';
+import { getApiKey, maskKey } from '../core/config.js';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
@@ -11,18 +11,6 @@ export function registerAuthCommand(program: Command): void {
     .description('Manage API key authentication');
 
   auth
-    .command('set <api-key>')
-    .description('Store API key in config')
-    .action(async (apiKey) => {
-      try {
-        saveConfig({ apiKey });
-        console.log(`API key saved to ${getConfigPath()}`);
-      } catch (error) {
-        handleError(error);
-      }
-    });
-
-  auth
     .command('show')
     .description('Display current API key (masked)')
     .action(async (_options, command) => {
@@ -31,13 +19,14 @@ export function registerAuthCommand(program: Command): void {
         const key = getApiKey();
         if (!key) {
           console.log('No API key configured.');
+          console.log('Set one with: export LIFI_API_KEY=<your-key>');
           return;
         }
         if (isJsonMode(opts)) {
-          console.log(jsonOutput({ key: maskKey(key), source: process.env.LIFI_API_KEY ? 'env' : 'config', configPath: getConfigPath() }));
+          console.log(jsonOutput({ key: maskKey(key) }));
         } else {
           console.log(`API Key: ${maskKey(key)}`);
-          console.log(`Source:  ${process.env.LIFI_API_KEY ? 'LIFI_API_KEY env var' : getConfigPath()}`);
+          console.log('Source:  LIFI_API_KEY env var');
         }
       } catch (error) {
         handleError(error);

@@ -15,9 +15,6 @@ vi.mock('ora', () => ({
 
 vi.mock('../core/config.js', () => ({
   getApiKey: vi.fn(),
-  loadConfig: vi.fn().mockReturnValue({}),
-  saveConfig: vi.fn(),
-  getConfigPath: vi.fn().mockReturnValue('/tmp/test-config.json'),
   maskKey: vi.fn().mockReturnValue('***'),
 }));
 

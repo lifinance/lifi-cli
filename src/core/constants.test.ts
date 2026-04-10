@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   API_BASE_URL,
   INTEGRATOR_ID,
-  CONFIG_DIR_NAME,
-  CONFIG_FILE_NAME,
   AUTH_HEADER,
   ENV_API_KEY,
   ExitCode,
@@ -16,14 +14,6 @@ describe('constants', () => {
 
   it('INTEGRATOR_ID is lifi-cli', () => {
     expect(INTEGRATOR_ID).toBe('lifi-cli');
-  });
-
-  it('CONFIG_DIR_NAME is lifi', () => {
-    expect(CONFIG_DIR_NAME).toBe('lifi');
-  });
-
-  it('CONFIG_FILE_NAME is config.json', () => {
-    expect(CONFIG_FILE_NAME).toBe('config.json');
   });
 
   it('AUTH_HEADER is X-LiFi-Api-Key', () => {

@@ -15,17 +15,14 @@ vi.mock('ora', () => ({
 }));
 
 vi.mock('../core/config.js', () => ({
-  saveConfig: vi.fn(),
-  getConfigPath: vi.fn().mockReturnValue('/tmp/test/.lifi/config.json'),
   getApiKey: vi.fn(),
   maskKey: vi.fn((key: string) => `${key.slice(0, 3)}...${key.slice(-3)}`),
 }));
 
 import { api } from '../core/http-client.js';
-import { saveConfig, getApiKey, maskKey } from '../core/config.js';
+import { getApiKey } from '../core/config.js';
 
 const mockedApi = vi.mocked(api);
-const mockedSaveConfig = vi.mocked(saveConfig);
 const mockedGetApiKey = vi.mocked(getApiKey);
 
 function createProgram(): Command {
@@ -48,20 +45,6 @@ describe('auth command', () => {
     });
   });
 
-  describe('auth set', () => {
-    it('saves the API key to config', async () => {
-      const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'set', 'my-api-key-123']);
-      expect(mockedSaveConfig).toHaveBeenCalledWith({ apiKey: 'my-api-key-123' });
-    });
-
-    it('prints confirmation message', async () => {
-      const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'set', 'my-api-key-123']);
-      expect(consoleOutput.some(l => l.includes('API key saved'))).toBe(true);
-    });
-  });
-
   describe('auth show', () => {
     it('prints masked key when key exists', async () => {
       mockedGetApiKey.mockReturnValue('test-key-12345');
@@ -75,6 +58,13 @@ describe('auth command', () => {
       const program = createProgram();
       await program.parseAsync(['node', 'test', 'auth', 'show']);
       expect(consoleOutput.some(l => l.includes('No API key'))).toBe(true);
+    });
+
+    it('suggests setting env var when no key set', async () => {
+      mockedGetApiKey.mockReturnValue(undefined);
+      const program = createProgram();
+      await program.parseAsync(['node', 'test', 'auth', 'show']);
+      expect(consoleOutput.some(l => l.includes('LIFI_API_KEY'))).toBe(true);
     });
   });
 

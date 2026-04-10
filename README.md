@@ -98,8 +98,7 @@ lifi allowance 1 USDC 0xd8dA...                # Check approval status
 ### API Key Management
 
 ```bash
-lifi auth set <api-key>        # Store API key
-lifi auth show                 # Display masked key and source
+lifi auth show                 # Display masked key
 lifi auth test                 # Validate key against the API
 ```
 
@@ -140,18 +139,18 @@ lifi quote --from 1 --to 42161 --verbose
 
 ## Configuration
 
-Config is stored at `~/.lifi/config.json` (override with `$XDG_CONFIG_HOME`).
+All configuration is via environment variables. No config files needed.
 
-```json
-{
-  "apiKey": "your_key_here"
-}
+```bash
+# LI.FI API key (higher rate limits)
+export LIFI_API_KEY=your_key_here
+
+# For "lifi ask" (coming soon)
+export LIFI_LLM_PROVIDER=claude    # or "openai"
+export LIFI_LLM_API_KEY=sk-ant-...
 ```
 
-API key resolution order:
-1. `LIFI_API_KEY` environment variable
-2. `~/.lifi/config.json`
-3. No key (public rate limits)
+Without `LIFI_API_KEY`, the CLI uses public rate limits (200 req/2hr). With a key, you get 200 req/min.
 
 ## Exit Codes
 
