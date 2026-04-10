@@ -99,6 +99,12 @@ describe('config', () => {
       const p = getConfigPath();
       expect(p).toBe(path.join('/custom/config', 'lifi', 'config.json'));
     });
+
+    it('defaults to ~/.lifi/ when XDG_CONFIG_HOME is not set', () => {
+      vi.stubEnv('XDG_CONFIG_HOME', '');
+      const p = getConfigPath();
+      expect(p).toBe(path.join(os.homedir(), '.lifi', 'config.json'));
+    });
   });
 
   describe('maskKey', () => {

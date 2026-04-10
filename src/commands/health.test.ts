@@ -55,12 +55,15 @@ describe('health command', () => {
     expect(typeof parsed.latencyMs).toBe('number');
   });
 
-  it('shows human-readable status', async () => {
+  it('shows human-readable status when TTY', async () => {
+    const origIsTTY = process.stdout.isTTY;
+    process.stdout.isTTY = true;
     mockedApi.get.mockResolvedValue({ data: { chains: [{}, {}] } });
     const program = createProgram();
     await program.parseAsync(['node', 'test', 'health']);
     const output = consoleOutput.join('\n');
     expect(output).toContain('ok');
     expect(output).toContain('2 chains available');
+    process.stdout.isTTY = origIsTTY;
   });
 });

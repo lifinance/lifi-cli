@@ -9,6 +9,7 @@ export function registerTokensCommand(program: Command): void {
     .command('tokens')
     .description('List supported tokens')
     .option('--chain <chainId>', 'Filter by chain ID')
+    .option('--min-price <price>', 'Filter by minimum USD price')
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
@@ -18,6 +19,16 @@ export function registerTokensCommand(program: Command): void {
         const { data } = await withSpinner('Fetching tokens...', () =>
           api.get('/tokens', { params }),
         );
+
+        if (options.minPrice) {
+          const minPrice = Number(options.minPrice);
+          const tokens = data.tokens;
+          for (const chainId of Object.keys(tokens)) {
+            tokens[chainId] = tokens[chainId].filter(
+              (t: any) => Number(t.priceUSD || 0) >= minPrice,
+            );
+          }
+        }
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));

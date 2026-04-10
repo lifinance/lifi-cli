@@ -1,8 +1,14 @@
 import type { Command } from 'commander';
+import { input } from '@inquirer/prompts';
 import { api } from '../core/http-client.js';
 import { isJsonMode, jsonOutput, formatTable, formatAmount } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
+
+async function promptIfMissing(value: string | undefined, message: string): Promise<string> {
+  if (value) return value;
+  return input({ message });
+}
 
 export function registerQuoteCommand(program: Command): void {
   program
@@ -19,13 +25,20 @@ export function registerQuoteCommand(program: Command): void {
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
+        const fromChain = await promptIfMissing(options.from, 'Source chain (name or ID):');
+        const toChain = await promptIfMissing(options.to, 'Destination chain (name or ID):');
+        const fromToken = await promptIfMissing(options.fromToken, 'Token to send (symbol or address):');
+        const toToken = await promptIfMissing(options.toToken, 'Token to receive (symbol or address):');
+        const fromAmount = await promptIfMissing(options.amount, 'Amount (in token units):');
+        const fromAddress = await promptIfMissing(options.fromAddress, 'Your wallet address:');
+
         const params: Record<string, string> = {
-          fromChain: options.from,
-          toChain: options.to,
-          fromToken: options.fromToken,
-          toToken: options.toToken,
-          fromAmount: options.amount,
-          fromAddress: options.fromAddress || '0x0000000000000000000000000000000000000000',
+          fromChain,
+          toChain,
+          fromToken,
+          toToken,
+          fromAmount,
+          fromAddress,
           slippage: options.slippage,
         };
         if (options.order) params.order = options.order;

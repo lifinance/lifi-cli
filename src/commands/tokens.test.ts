@@ -25,6 +25,7 @@ const TOKENS_FIXTURE = {
     '1': [
       { chainId: 1, address: '0xa0b8...', symbol: 'USDC', name: 'USD Coin', decimals: 6, priceUSD: '1.00' },
       { chainId: 1, address: '0xdac1...', symbol: 'USDT', name: 'Tether USD', decimals: 6, priceUSD: '1.00' },
+      { chainId: 1, address: '0xc02a...', symbol: 'WETH', name: 'Wrapped Ether', decimals: 18, priceUSD: '2200.00' },
     ],
   },
 };
@@ -65,6 +66,19 @@ describe('tokens command', () => {
     expect(mockedApi.get).toHaveBeenCalledWith('/tokens', expect.objectContaining({
       params: { chains: '1' },
     }));
+  });
+
+  it('filters by --min-price', async () => {
+    mockedApi.get.mockResolvedValue({ data: TOKENS_FIXTURE });
+    const program = createProgram();
+    await program.parseAsync(['node', 'test', 'tokens', '--chain', '1', '--min-price', '100', '--json']);
+    const parsed = JSON.parse(consoleOutput.join(''));
+    const allTokens: any[] = [];
+    for (const chainId of Object.keys(parsed.tokens)) {
+      allTokens.push(...parsed.tokens[chainId]);
+    }
+    expect(allTokens.every((t: any) => Number(t.priceUSD) >= 100)).toBe(true);
+    expect(allTokens.length).toBe(1); // only WETH at $2200
   });
 
   it('outputs JSON when --json flag is set', async () => {

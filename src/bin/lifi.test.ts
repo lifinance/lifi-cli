@@ -65,4 +65,25 @@ describe('lifi entry point', () => {
       try { program.parse(['node', 'lifi', '--help']); } catch {}
     }).not.toThrow();
   });
+
+  it('--no-color sets NO_COLOR env var via preAction hook', async () => {
+    const origNoColor = process.env.NO_COLOR;
+    delete process.env.NO_COLOR;
+
+    vi.mocked((await import('../core/http-client.js')).api.get).mockResolvedValue({
+      data: { chains: [{ id: 1, name: 'Ethereum', chainType: 'EVM', nativeToken: { symbol: 'ETH' } }] },
+    });
+
+    const program = createProgram();
+    program.exitOverride();
+    program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await program.parseAsync(['node', 'lifi', '--no-color', 'chains', '--json']);
+    expect(process.env.NO_COLOR).toBe('1');
+
+    // cleanup
+    if (origNoColor === undefined) delete process.env.NO_COLOR;
+    else process.env.NO_COLOR = origNoColor;
+  });
 });

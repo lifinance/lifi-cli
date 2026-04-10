@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import { api } from '../core/http-client.js';
-import { isJsonMode, jsonOutput } from '../core/formatter.js';
+import { isJsonMode, jsonOutput, formatTable } from '../core/formatter.js';
 import { withSpinner } from '../core/interactive.js';
 import { handleError } from '../core/errors.js';
 
@@ -20,7 +20,11 @@ export function registerAllowanceCommand(program: Command): void {
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
         } else {
-          console.log(jsonOutput(data));
+          const rows = [
+            ['Allowance', data.allowance || data.value || 'N/A'],
+            ['Approved', data.allowance && data.allowance !== '0' ? 'Yes' : 'No'],
+          ];
+          console.log(formatTable(['Field', 'Value'], rows));
         }
       } catch (error) {
         handleError(error);

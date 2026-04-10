@@ -25,6 +25,16 @@ export function createProgram(): Command {
     .option('--no-color', 'Disable colored output')
     .option('--verbose', 'Show verbose output including full API responses');
 
+  program.hook('preAction', (thisCommand) => {
+    const opts = thisCommand.opts();
+    if (opts.color === false) {
+      process.env.NO_COLOR = '1';
+    }
+    if (opts.verbose) {
+      process.env.LIFI_VERBOSE = '1';
+    }
+  });
+
   registerAuthCommand(program);
   registerChainsCommand(program);
   registerTokensCommand(program);

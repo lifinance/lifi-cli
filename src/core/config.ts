@@ -12,8 +12,8 @@ export interface CliConfig {
 
 export function getConfigDir(): string {
   const xdg = process.env.XDG_CONFIG_HOME;
-  const base = xdg || path.join(os.homedir(), '.config');
-  return path.join(base, CONFIG_DIR_NAME);
+  if (xdg) return path.join(xdg, CONFIG_DIR_NAME);
+  return path.join(os.homedir(), `.${CONFIG_DIR_NAME}`);
 }
 
 export function getConfigPath(): string {

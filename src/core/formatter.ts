@@ -43,7 +43,8 @@ export function formatTable(headers: string[], rows: string[][]): string {
 }
 
 export function isJsonMode(options: { json?: boolean }): boolean {
-  return options.json === true;
+  if (options.json === true) return true;
+  return !process.stdout.isTTY;
 }
 
 export function jsonOutput(data: unknown): string {

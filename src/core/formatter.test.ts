@@ -89,12 +89,25 @@ describe('formatter', () => {
       expect(isJsonMode({ json: true })).toBe(true);
     });
 
-    it('returns false when json option is not set', () => {
+    it('returns false when json option is not set and stdout is TTY', () => {
+      const origIsTTY = process.stdout.isTTY;
+      process.stdout.isTTY = true;
       expect(isJsonMode({})).toBe(false);
+      process.stdout.isTTY = origIsTTY;
     });
 
-    it('returns false when json is explicitly false', () => {
+    it('returns false when json is explicitly false and stdout is TTY', () => {
+      const origIsTTY = process.stdout.isTTY;
+      process.stdout.isTTY = true;
       expect(isJsonMode({ json: false })).toBe(false);
+      process.stdout.isTTY = origIsTTY;
+    });
+
+    it('returns true when stdout is not a TTY (piped)', () => {
+      const origIsTTY = process.stdout.isTTY;
+      process.stdout.isTTY = undefined as any;
+      expect(isJsonMode({})).toBe(true);
+      process.stdout.isTTY = origIsTTY;
     });
   });
 

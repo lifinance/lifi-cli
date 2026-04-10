@@ -69,11 +69,19 @@ export function mapAxiosError(error: AxiosLikeError): CliError {
 }
 
 export function handleError(error: unknown): never {
+  const verbose = process.env.LIFI_VERBOSE === '1';
+
   if (error instanceof CliError) {
     console.error(formatError(error));
+    if (verbose && error.stack) {
+      console.error('\n' + error.stack);
+    }
     process.exit(error.exitCode);
   }
 
   console.error(formatError(error));
+  if (verbose && error instanceof Error && error.stack) {
+    console.error('\n' + error.stack);
+  }
   process.exit(ExitCode.General);
 }
