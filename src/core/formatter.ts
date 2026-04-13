@@ -1,20 +1,20 @@
-import Table from 'cli-table3';
+import Table from "cli-table3";
 
 export function formatAmount(amount: string, decimals: number): string {
-  if (amount === '0') return '0';
+  if (amount === "0") return "0";
 
-  const padded = amount.padStart(decimals + 1, '0');
-  const intPart = padded.slice(0, padded.length - decimals) || '0';
-  const fracPart = padded.slice(padded.length - decimals).replace(/0+$/, '');
+  const padded = amount.padStart(decimals + 1, "0");
+  const intPart = padded.slice(0, padded.length - decimals) || "0";
+  const fracPart = padded.slice(padded.length - decimals).replace(/0+$/, "");
 
   if (!fracPart) return intPart;
   return `${intPart}.${fracPart}`;
 }
 
 export function formatUsd(value: number): string {
-  return value.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -50,4 +50,3 @@ export function isJsonMode(options: { json?: boolean }): boolean {
 export function jsonOutput(data: unknown): string {
   return JSON.stringify(data, null, 2);
 }
-

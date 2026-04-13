@@ -1,8 +1,8 @@
-import axios from 'axios';
-import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { API_BASE_URL, AUTH_HEADER, INTEGRATOR_ID } from './constants.js';
-import { getApiKey } from './config.js';
-import { mapAxiosError } from './errors.js';
+import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
+import { getApiKey } from "./config.js";
+import { API_BASE_URL, AUTH_HEADER, INTEGRATOR_ID } from "./constants.js";
+import { mapAxiosError } from "./errors.js";
 
 // Singleton — each CLI invocation runs one command in one process, so shared
 // state is fine. Tests mock via vi.mock('./http-client.js') which replaces the

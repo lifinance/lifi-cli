@@ -19,7 +19,8 @@
     "format": "biome format --write src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=18"
@@ -31,9 +32,16 @@
     "commander": "^12.1.0",
     "ora": "^8.1.0"
   },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "biome check --no-errors-on-unmatched"
+    ]
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.11",
     "@types/node": "^22.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "tsup": "^8.3.0",
     "typescript": "~5.6.0",
     "vitest": "^2.1.0"

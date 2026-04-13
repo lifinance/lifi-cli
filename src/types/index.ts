@@ -36,7 +36,7 @@ export interface Chain {
   diamondAddress?: string;
 }
 
-export type ChainType = 'EVM' | 'SVM';
+export type ChainType = "EVM" | "SVM";
 
 // --- Token types ---
 
@@ -111,14 +111,18 @@ export interface RoutesResponse {
 
 // --- Route order ---
 
-export type RouteOrder = 'CHEAPEST' | 'FASTEST' | 'SAFEST' | 'RECOMMENDED';
+export type RouteOrder = "CHEAPEST" | "FASTEST" | "SAFEST" | "RECOMMENDED";
 
 // --- Status types ---
 
-export type TransferStatus = 'PENDING' | 'DONE' | 'FAILED' | 'CANCELLED' | 'NOT_FOUND' | 'INVALID' | 'UNKNOWN';
+export type TransferStatus = "PENDING" | "DONE" | "FAILED" | "CANCELLED" | "NOT_FOUND" | "INVALID" | "UNKNOWN";
 
 export const TERMINAL_STATUSES: ReadonlySet<TransferStatus> = new Set<TransferStatus>([
-  'DONE', 'FAILED', 'CANCELLED', 'NOT_FOUND', 'INVALID',
+  "DONE",
+  "FAILED",
+  "CANCELLED",
+  "NOT_FOUND",
+  "INVALID",
 ]);
 
 export interface StatusResponse {

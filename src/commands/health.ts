@@ -1,25 +1,23 @@
-import type { Command } from 'commander';
-import { api } from '../core/http-client.js';
-import { isJsonMode, jsonOutput } from '../core/formatter.js';
-import { withSpinner } from '../core/interactive.js';
-import { handleError } from '../core/errors.js';
+import type { Command } from "commander";
+import { handleError } from "../core/errors.js";
+import { isJsonMode, jsonOutput } from "../core/formatter.js";
+import { api } from "../core/http-client.js";
+import { withSpinner } from "../core/interactive.js";
 
 export function registerHealthCommand(program: Command): void {
   program
-    .command('health')
-    .description('Check LI.FI API connectivity, latency, and available chains')
+    .command("health")
+    .description("Check LI.FI API connectivity, latency, and available chains")
     .action(async (_options, command) => {
       const opts = command.optsWithGlobals();
       try {
         const start = Date.now();
-        const { data } = await withSpinner('Checking API health...', () =>
-          api.get('/chains'),
-        );
+        const { data } = await withSpinner("Checking API health...", () => api.get("/chains"));
         const latency = Date.now() - start;
 
         const chains = data.chains || data;
         const result = {
-          status: 'ok',
+          status: "ok",
           latencyMs: latency,
           chainsAvailable: Array.isArray(chains) ? chains.length : 0,
         };

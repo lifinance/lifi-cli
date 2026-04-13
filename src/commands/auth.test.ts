@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Command } from 'commander';
-import { registerAuthCommand } from './auth.js';
+import { Command } from "commander";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { registerAuthCommand } from "./auth.js";
 
-vi.mock('../core/http-client.js', () => ({
+vi.mock("../core/http-client.js", () => ({
   api: { get: vi.fn() },
 }));
 
-vi.mock('ora', () => ({
+vi.mock("ora", () => ({
   default: () => ({
     start: vi.fn().mockReturnThis(),
     succeed: vi.fn().mockReturnThis(),
@@ -14,13 +14,13 @@ vi.mock('ora', () => ({
   }),
 }));
 
-vi.mock('../core/config.js', () => ({
+vi.mock("../core/config.js", () => ({
   getApiKey: vi.fn(),
   maskKey: vi.fn((key: string) => `${key.slice(0, 3)}...${key.slice(-3)}`),
 }));
 
-import { api } from '../core/http-client.js';
-import { getApiKey } from '../core/config.js';
+import { getApiKey } from "../core/config.js";
+import { api } from "../core/http-client.js";
 
 const mockedApi = vi.mocked(api);
 const mockedGetApiKey = vi.mocked(getApiKey);
@@ -28,59 +28,59 @@ const mockedGetApiKey = vi.mocked(getApiKey);
 function createProgram(): Command {
   const program = new Command();
   program.exitOverride();
-  program.option('--json', 'Output raw JSON');
+  program.option("--json", "Output raw JSON");
   program.configureOutput({ writeOut: () => {}, writeErr: () => {} });
   registerAuthCommand(program);
   return program;
 }
 
-describe('auth command', () => {
+describe("auth command", () => {
   let consoleOutput: string[];
 
   beforeEach(() => {
     vi.clearAllMocks();
     consoleOutput = [];
-    vi.spyOn(console, 'log').mockImplementation((...args) => {
-      consoleOutput.push(args.join(' '));
+    vi.spyOn(console, "log").mockImplementation((...args) => {
+      consoleOutput.push(args.join(" "));
     });
   });
 
-  describe('auth show', () => {
-    it('prints masked key when key exists', async () => {
-      mockedGetApiKey.mockReturnValue('test-key-12345');
+  describe("auth show", () => {
+    it("prints masked key when key exists", async () => {
+      mockedGetApiKey.mockReturnValue("test-key-12345");
       const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'show']);
-      expect(consoleOutput.some(l => l.includes('tes...345'))).toBe(true);
+      await program.parseAsync(["node", "test", "auth", "show"]);
+      expect(consoleOutput.some((l) => l.includes("tes...345"))).toBe(true);
     });
 
-    it('prints no key message when no key set', async () => {
+    it("prints no key message when no key set", async () => {
       mockedGetApiKey.mockReturnValue(undefined);
       const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'show']);
-      expect(consoleOutput.some(l => l.includes('No API key'))).toBe(true);
+      await program.parseAsync(["node", "test", "auth", "show"]);
+      expect(consoleOutput.some((l) => l.includes("No API key"))).toBe(true);
     });
 
-    it('suggests setting env var when no key set', async () => {
+    it("suggests setting env var when no key set", async () => {
       mockedGetApiKey.mockReturnValue(undefined);
       const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'show']);
-      expect(consoleOutput.some(l => l.includes('LIFI_API_KEY'))).toBe(true);
+      await program.parseAsync(["node", "test", "auth", "show"]);
+      expect(consoleOutput.some((l) => l.includes("LIFI_API_KEY"))).toBe(true);
     });
   });
 
-  describe('auth test', () => {
-    it('calls /keys/test endpoint', async () => {
+  describe("auth test", () => {
+    it("calls /keys/test endpoint", async () => {
       mockedApi.get.mockResolvedValue({ data: { valid: true } });
       const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'test']);
-      expect(mockedApi.get).toHaveBeenCalledWith('/keys/test');
+      await program.parseAsync(["node", "test", "auth", "test"]);
+      expect(mockedApi.get).toHaveBeenCalledWith("/keys/test");
     });
 
-    it('prints success message on valid key', async () => {
+    it("prints success message on valid key", async () => {
       mockedApi.get.mockResolvedValue({ data: { valid: true } });
       const program = createProgram();
-      await program.parseAsync(['node', 'test', 'auth', 'test']);
-      expect(consoleOutput.some(l => l.includes('valid'))).toBe(true);
+      await program.parseAsync(["node", "test", "auth", "test"]);
+      expect(consoleOutput.some((l) => l.includes("valid"))).toBe(true);
     });
   });
 });

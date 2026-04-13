@@ -6,6 +6,7 @@
 .cursorrules.txt
 .cursorrules.yml
 .cursorrules.yaml
+.husky/_
 node_modules/
 dist/
 *.tsbuildinfo

@@ -1,4 +1,4 @@
-import ora from 'ora';
+import ora from "ora";
 
 export async function withSpinner<T>(message: string, fn: () => Promise<T>): Promise<T> {
   const spinner = ora(message).start();
