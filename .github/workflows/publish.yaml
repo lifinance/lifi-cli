@@ -49,10 +49,5 @@ jobs:
           TAG=${{ contains(github.ref_name, 'alpha') && 'alpha' || contains(github.ref_name, 'beta') && 'beta' || 'latest' }}
           pnpm publish --access public --no-git-checks --tag "$TAG"
         env:
-          # Required ONLY for the first publish. After the first successful publish,
-          # configure a Trusted Publisher for this repo on npmjs.com
-          # (Package → Settings → Trusted Publishers → GitHub Actions),
-          # then remove this NODE_AUTH_TOKEN line and delete the NPM_TOKEN secret.
-          # OIDC + id-token:write will handle auth from then on.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Auth via npm Trusted Publisher + OIDC (id-token: write above).
           NPM_CONFIG_PROVENANCE: true
