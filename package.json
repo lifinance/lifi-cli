@@ -3,16 +3,21 @@
   "version": "0.1.0",
   "description": "CLI for the LI.FI cross-chain bridge & DEX aggregation API",
   "license": "MIT",
+  "type": "module",
   "bin": {
-    "lifi": "./dist/lifi.cjs"
+    "lifi": "./dist/lifi.js"
   },
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "start": "node dist/lifi.cjs",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "start": "node dist/lifi.js",
     "typecheck": "tsc --noEmit",
     "lint": "biome check src/",
     "lint:fix": "biome check --write src/",
@@ -20,11 +25,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "commit-and-tag-version -a -s",
+    "release:alpha": "commit-and-tag-version -a -s --prerelease alpha",
+    "release:beta": "commit-and-tag-version -a -s --prerelease beta"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
+  "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@inquirer/prompts": "^8.0.0",
     "axios": "^1.7.0",
@@ -40,9 +49,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.11",
     "@types/node": "^22.0.0",
+    "commit-and-tag-version": "^12.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "tsup": "^8.3.0",
+    "tsdown": "^0.21.8",
     "typescript": "~5.6.0",
     "vitest": "^2.1.0"
   }
