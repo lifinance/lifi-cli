@@ -1,6 +1,6 @@
 {
   "name": "@lifi/cli",
-  "version": "0.1.1-alpha.0",
+  "version": "0.1.1-alpha.1",
   "description": "CLI for the LI.FI cross-chain bridge & DEX aggregation API",
   "homepage": "https://github.com/lifinance/lifi-cli",
   "bugs": {

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1-alpha.1](https://github.com/lifinance/lifi-cli/compare/v0.1.1-alpha.0...v0.1.1-alpha.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* add repository metadata required by npm provenance ([dce198c](https://github.com/lifinance/lifi-cli/commit/dce198c8c3b5f2d0d5846774403d6b8991e66c38))
+
 ## 0.1.1-alpha.0 (2026-04-15)
 
 
