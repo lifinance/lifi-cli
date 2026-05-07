@@ -95,6 +95,17 @@ lifi gas                       # Gas prices for all chains
 lifi gas 1                     # Detailed gas suggestion for Ethereum
 ```
 
+### Earn
+
+```bash
+lifi earn vaults --chain 8453 --asset USDC        # List Earn vaults
+lifi earn vaults --protocol aave --json           # Raw vault data
+lifi earn vault 8453 0xVAULT_ADDRESS              # Get one vault
+lifi earn chains                                  # Chains supported by Earn
+lifi earn protocols                               # Protocols supported by Earn
+lifi earn positions 0xYOUR_ADDRESS                # Wallet Earn positions
+```
+
 ### API Key Management
 
 ```bash

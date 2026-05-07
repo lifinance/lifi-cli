@@ -194,3 +194,100 @@ export interface GasSuggestion {
   available: boolean;
   fromAmount?: string;
 }
+
+// --- Earn types ---
+
+export interface EarnProtocol {
+  id?: string;
+  key?: string;
+  name: string;
+  logoUri: string;
+  url: string;
+}
+
+export interface EarnAsset {
+  address?: string;
+  symbol: string;
+  decimals?: number;
+  weight?: number;
+  name?: string;
+  priceUsd?: string | number;
+}
+
+export interface EarnVaultCaps {
+  totalCap?: string;
+  maxCap?: string;
+}
+
+export interface EarnVaultPack {
+  name: string;
+  stepsType: string;
+}
+
+export interface EarnVault {
+  id?: string;
+  address?: string;
+  chainId: number;
+  network?: string;
+  slug?: string;
+  name?: string;
+  description?: string;
+  protocol?: EarnProtocol;
+  asset?: EarnAsset;
+  underlyingTokens?: EarnAsset[];
+  lpTokens?: EarnAsset[];
+  rewardTokens?: EarnAsset[];
+  tags: string[];
+  analytics?: {
+    apy?: {
+      total?: number | null;
+      base?: number | null;
+      reward?: number | null;
+    };
+    apy1d?: number;
+    apy7d?: number;
+    apy30d: number;
+    tvl?: {
+      usd?: string | number;
+      native?: string;
+    };
+    updatedAt: string;
+  };
+  apy?: number;
+  tvlUsd?: number;
+  tvlUSD?: number;
+  isTransactional?: boolean;
+  isRedeemable?: boolean;
+  isComposerSupported?: boolean;
+  caps?: EarnVaultCaps;
+  timeLock?: number;
+  kyc?: boolean;
+  syncedAt?: string;
+  depositPacks?: EarnVaultPack[];
+  redeemPacks?: EarnVaultPack[];
+}
+
+export interface EarnVaultsResponse {
+  data: EarnVault[];
+  nextCursor?: string;
+  total?: number;
+}
+
+export interface EarnChain {
+  name: string;
+  chainId: number;
+  networkCaip?: string;
+}
+
+export interface EarnPosition {
+  chainId?: number;
+  protocolName?: string | null;
+  address?: string | null;
+  asset?: EarnAsset;
+  balanceNative?: string;
+  balanceUsd?: string | number;
+}
+
+export interface EarnPositionsResponse {
+  positions: EarnPosition[];
+}
