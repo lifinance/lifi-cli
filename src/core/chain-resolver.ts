@@ -15,7 +15,7 @@ async function fetchChains(): Promise<Chain[]> {
   if (chainsCache) return chainsCache;
   if (inflight) return inflight;
 
-  inflight = api.get<{ chains: Chain[] }>("/chains").then(({ data }) => {
+  inflight = api.get<{ chains: Chain[] }>("/chains?chainTypes=EVM,SVM").then(({ data }) => {
     chainsCache = data.chains;
     inflight = null;
     return chainsCache;
