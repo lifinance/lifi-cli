@@ -3,6 +3,11 @@ import { ExitCode } from "./constants.js";
 import { CliError } from "./errors.js";
 import { api } from "./http-client.js";
 
+// Process-lifetime cache for the chain catalog. Safe here because the CLI is a
+// short-lived single-tenant process — every `lifi …` invocation is a fresh
+// Node.js process, so there is no risk of cross-user state leakage. The cache
+// just lets multiple balance subcommands within one invocation share a single
+// /chains fetch. `inflight` coalesces concurrent callers onto one request.
 let chainsCache: Chain[] | null = null;
 let inflight: Promise<Chain[]> | null = null;
 
