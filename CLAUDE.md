@@ -23,9 +23,8 @@
 - Suggest sanity checks where appropriate
 
 ## Git Commits
-- Never run `git commit` directly — the user's SSH key requires a passphrase they enter manually
-- Instead: stage files with `git add`, then give the user the exact `git commit` command to run themselves in another terminal
-- Wait for the user to confirm the commit is done before proceeding
+- Never stop or block on committing. Keep working through the task.
+- The user handles commits themselves — don't run `git commit`, don't pause to wait for them, and don't ask whether to commit.
 
 ---
 
