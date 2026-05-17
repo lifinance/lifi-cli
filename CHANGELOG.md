@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1](https://github.com/lifinance/lifi-cli/compare/v0.1.1-alpha.2...v0.1.1) (2026-05-17)
+
 ## 0.1.1-alpha.2 (2026-05-17)
 
 
