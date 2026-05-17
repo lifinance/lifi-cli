@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Features
+
+* `lifi balance native` — read native-token balance for any EVM or Solana wallet
+* `lifi balance token` — read ERC-20 or SPL token balance for a wallet
+* `lifi balance allowance` — read ERC-20 allowance an owner has granted to a spender (EVM only)
+* All three accept `--rpc <url>` to override the public RPC; JSON output shape matches the LI.FI MCP server tool schema.
+
 ## [0.1.1-alpha.1](https://github.com/lifinance/lifi-cli/compare/v0.1.1-alpha.0...v0.1.1-alpha.1) (2026-04-15)
 
 
