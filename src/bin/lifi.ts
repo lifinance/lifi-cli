@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { registerAuthCommand } from "../commands/auth.js";
+import { registerBalanceCommand } from "../commands/balance.js";
 import { registerChainsCommand } from "../commands/chains.js";
 import { registerConnectionsCommand } from "../commands/connections.js";
 import { registerEarnCommand } from "../commands/earn.js";
@@ -52,6 +53,7 @@ export function createProgram(): Command {
   registerToolsCommand(program);
   registerGasCommand(program);
   registerHealthCommand(program);
+  registerBalanceCommand(program);
 
   return program;
 }

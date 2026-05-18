@@ -288,3 +288,34 @@ export interface EarnPosition {
 export interface EarnPositionsResponse {
   positions: EarnPosition[];
 }
+
+
+// --- Balance / allowance result shapes ---
+// Field names mirror the LI.FI MCP server's tool result schema so JSON output is drop-in compatible.
+
+export interface NativeBalanceResult {
+  address: string;
+  balance: string;
+  tokenSymbol: string;
+  chainId: number;
+  decimals: number;
+}
+
+export interface TokenBalanceResult {
+  walletAddress: string;
+  tokenAddress: string;
+  balance: string;
+  tokenSymbol: string;
+  decimals: number;
+  chainId: number;
+}
+
+export interface AllowanceResult {
+  tokenAddress: string;
+  ownerAddress: string;
+  spenderAddress: string;
+  allowance: string;
+  tokenSymbol: string;
+  decimals: number;
+  chainId: number;
+}

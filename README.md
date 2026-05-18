@@ -119,6 +119,32 @@ lifi auth test                 # Validate key against the API
 lifi health                    # Check API connectivity and latency
 ```
 
+### Balances & Allowances
+
+Read on-chain balances and ERC-20 allowances directly via JSON-RPC (no signing).
+
+```bash
+# Native (gas) balance — EVM or Solana
+lifi balance native --chain ethereum --address 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+lifi balance native --chain solana   --address 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM
+
+# ERC-20 / SPL token balance
+lifi balance token --chain ethereum \
+  --token  0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 \
+  --wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+
+# ERC-20 allowance (EVM only)
+lifi balance allowance --chain ethereum \
+  --token   0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 \
+  --owner   0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 \
+  --spender 0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE
+
+# Override the public RPC when needed
+lifi balance native --chain arbitrum --address 0x... --rpc https://arb1.example/v1
+```
+
+RPC URLs are pulled from the LI.FI chain catalog by default and tried in order on transient failures.
+
 ## Output Modes
 
 | Mode | Trigger | Behaviour |
