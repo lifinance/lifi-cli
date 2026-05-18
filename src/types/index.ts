@@ -201,13 +201,13 @@ export interface EarnProtocol {
   id?: string;
   key?: string;
   name: string;
-  logoUri: string;
-  url: string;
+  logoUri?: string;
+  url?: string;
 }
 
 export interface EarnAsset {
   address?: string;
-  symbol: string;
+  symbol?: string;
   decimals?: number;
   weight?: number;
   name?: string;
@@ -225,19 +225,16 @@ export interface EarnVaultPack {
 }
 
 export interface EarnVault {
-  id?: string;
   address?: string;
-  chainId: number;
   network?: string;
+  chainId?: number;
   slug?: string;
   name?: string;
   description?: string;
   protocol?: EarnProtocol;
-  asset?: EarnAsset;
   underlyingTokens?: EarnAsset[];
-  lpTokens?: EarnAsset[];
   rewardTokens?: EarnAsset[];
-  tags: string[];
+  tags?: string[];
   analytics?: {
     apy?: {
       total?: number | null;
@@ -246,25 +243,25 @@ export interface EarnVault {
     };
     apy1d?: number;
     apy7d?: number;
-    apy30d: number;
+    apy30d?: number;
     tvl?: {
-      usd?: string | number;
+      usd?: string;
       native?: string;
     };
-    updatedAt: string;
+    updatedAt?: string;
   };
-  apy?: number;
-  tvlUsd?: number;
-  tvlUSD?: number;
+  verificationStatus?: string;
+  verificationStatusBreakdown?: [
+    {
+      result?: string;
+      reason?: string;
+    },
+  ];
   isTransactional?: boolean;
   isRedeemable?: boolean;
-  isComposerSupported?: boolean;
-  caps?: EarnVaultCaps;
-  timeLock?: number;
-  kyc?: boolean;
-  syncedAt?: string;
   depositPacks?: EarnVaultPack[];
   redeemPacks?: EarnVaultPack[];
+  syncedAt?: string;
 }
 
 export interface EarnVaultsResponse {

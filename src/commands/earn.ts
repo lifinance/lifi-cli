@@ -1,6 +1,6 @@
-import { type Command, Option } from "commander";
+import { type Command, InvalidArgumentError, Option } from "commander";
 import { handleError } from "../core/errors.js";
-import { formatTable, isJsonMode, jsonOutput } from "../core/formatter.js";
+import { formatTable, formatUsd, isJsonMode, jsonOutput } from "../core/formatter.js";
 import { earnApi } from "../core/http-client.js";
 import { withSpinner } from "../core/interactive.js";
 import type {
@@ -11,46 +11,46 @@ import type {
   EarnVault,
   EarnVaultsResponse,
 } from "../types/index.js";
-import axios from "axios";
 
-function protocolName(protocol: EarnProtocol | string | undefined): string {
+function protocolName(protocol: EarnProtocol | undefined): string {
   if (!protocol) return "N/A";
-  return typeof protocol === "string" ? protocol : protocol.name;
-}
-
-function usd(value: number | string | undefined): string {
-  if (value === undefined || value === null || value === "") return "N/A";
-  const number = Number(value);
-  if (!Number.isFinite(number)) return String(value);
-  return `$${number.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  return protocol.name;
 }
 
 function percent(value: number | undefined): string {
   if (value === undefined || value === null || !Number.isFinite(Number(value))) return "N/A";
-  const normalized = Math.abs(value) <= 1 ? value * 100 : value;
+  const normalized = value * 100;
   return `${normalized.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`;
 }
 
 function vaultAsset(vault: EarnVault): string {
-  return vault.asset?.symbol ?? vault.underlyingTokens?.[0]?.symbol ?? vault.lpTokens?.[0]?.symbol ?? "N/A";
+  return vault.underlyingTokens?.[0]?.symbol ?? "N/A";
 }
 
 function vaultApy(vault: EarnVault): number | undefined {
-  return vault.apy ?? vault.analytics?.apy?.total ?? undefined;
+  return vault.analytics?.apy?.total ?? undefined;
 }
 
 function vaultTvl(vault: EarnVault): number | string | undefined {
-  return vault.tvlUsd ?? vault.tvlUSD ?? vault.analytics?.tvl?.usd;
+  return vault.analytics?.tvl?.usd ?? undefined;
+}
+
+function parsePositiveInteger(value: string, message: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new InvalidArgumentError(message);
+  }
+  return parsed;
 }
 
 function vaultRows(vaults: EarnVault[]): string[][] {
   return vaults.map((vault) => [
     String(vault.chainId),
     protocolName(vault.protocol),
-    vault.name ?? vault.slug ?? vault.id ?? "N/A",
+    vault.name ?? vault.slug ?? "N/A",
     vaultAsset(vault),
     percent(vaultApy(vault)),
-    usd(vaultTvl(vault)),
+    formatUsd(Number(vaultTvl(vault))),
   ]);
 }
 
@@ -61,7 +61,7 @@ function positionRows(positions: EarnPosition[]): string[][] {
     position.address ?? "N/A",
     position.asset?.symbol ?? "N/A",
     position.balanceNative ?? "N/A",
-    usd(position.balanceUsd ?? 0),
+    formatUsd(Number(position.balanceUsd)),
   ]);
 }
 
@@ -84,12 +84,16 @@ Examples:
     .option("--chain <chainId>", "Filter by chain ID")
     .option("--asset <asset>", "Filter by asset symbol or address")
     .option("--protocol <protocol>", "Filter by protocol key or name")
-    .option("--min-tvl <usd>", "Only show vaults with TVL >= this USD amount")
+    .option("--min-tvl <usd>", "Only show vaults with TVL >= this USD amount", (value) =>
+      parsePositiveInteger(value, "must be a positive integer"),
+    )
     .option("--transactional", "Only show vaults that support transactional flows")
     .option("--redeemable", "Only show vaults that support redemption")
     .option("--composer-supported", "Only show vaults supported by LI.FI Composer")
     .addOption(new Option("--sort-by <field>", "Sort vaults by an Earn API field").choices(["apy", "tvl"]))
-    .option("--limit <count>", "Maximum number of vaults to request")
+    .option("--limit <count>", "Maximum number of vaults to request", (value) =>
+      parsePositiveInteger(value, "must be a positive integer"),
+    )
     .option("--cursor <cursor>", "Pagination cursor from a previous response")
     .addHelpText(
       "after",
@@ -102,21 +106,23 @@ Examples:
     .action(async (options, command) => {
       const opts = command.optsWithGlobals();
       try {
-        const params: Record<string, string | boolean> = {};
+        const params: Record<string, string | number | boolean> = {};
         if (options.chain) params["chainId"] = options.chain as string;
         if (options.asset) params["asset"] = options.asset as string;
         if (options.protocol) params["protocol"] = options.protocol as string;
-        if (options.minTvl) params["minTvlUsd"] = options.minTvl as string;
+        if (options.minTvl !== undefined) params["minTvlUsd"] = options.minTvl as number;
         if (options.transactional) params["isTransactional"] = true;
         if (options.redeemable) params["isRedeemable"] = true;
         if (options.composerSupported) params["isComposerSupported"] = true;
         if (options.sortBy) params["sortBy"] = options.sortBy as string;
-        if (options.limit) params["limit"] = options.limit as string;
+        if (options.limit !== undefined) params["limit"] = options.limit as number;
         if (options.cursor) params["cursor"] = options.cursor as string;
 
         const { data } = await withSpinner("Fetching Earn vaults...", () =>
           earnApi.get<EarnVaultsResponse>("/vaults", { params }),
         );
+
+        if (data.total !== undefined) console.log(`\n  Total vaults: ${data.total}`);
 
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
@@ -125,8 +131,6 @@ Examples:
           if (data.nextCursor) {
             console.log(`\n  Next page cursor: ${data.nextCursor}`);
           }
-          if (data.total !== undefined) console.log(`\n  Total vaults: ${data.total}`);
-          console.log("\n  Next: lifi earn positions <address>  or  lifi earn vaults --json");
         }
       } catch (error) {
         handleError(error);
@@ -159,7 +163,7 @@ Examples:
             ["Vault", data.name ?? data.slug ?? data.address ?? "N/A"],
             ["Asset", vaultAsset(data)],
             ["APY", percent(vaultApy(data))],
-            ["TVL", usd(vaultTvl(data))],
+            ["TVL", formatUsd(Number(vaultTvl(data)))],
             ["Transactional", data.isTransactional ? "Yes" : "No"],
             ["Redeemable", data.isRedeemable ? "Yes" : "No"],
           ];
@@ -201,11 +205,7 @@ Examples:
         if (isJsonMode(opts)) {
           console.log(jsonOutput(data));
         } else {
-          const rows = data.map((protocol) => [
-            protocol.name,
-            protocol.url ?? "N/A",
-            protocol.logoUri?? "N/A"
-          ]);
+          const rows = data.map((protocol) => [protocol.name, protocol.url ?? "N/A", protocol.logoUri ?? "N/A"]);
           console.log(formatTable(["Name", "URL", "Logo URI"], rows));
         }
       } catch (error) {
@@ -234,7 +234,10 @@ Examples:
           console.log(jsonOutput(data));
         } else {
           console.log(
-            formatTable(["Chain ID", "Protocol", "Protocol Address", "Asset", "Balance Native", "Balance USD"], positionRows(data.positions)),
+            formatTable(
+              ["Chain ID", "Protocol", "Vault Address", "Asset", "Balance Native", "Balance USD"],
+              positionRows(data.positions),
+            ),
           );
         }
       } catch (error) {
