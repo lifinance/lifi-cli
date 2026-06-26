@@ -1,8 +1,5 @@
-import axios from "axios";
 import { beforeAll, describe, expect, it } from "vitest";
-
-const EARN_API_BASE = "https://earn.li.fi/v1";
-const PARAMS = { integrator: "lifi-cli" };
+import { earnApi } from "../core/http-client.js";
 
 const shouldRun = process.env["INTEGRATION"] === "1";
 
@@ -10,19 +7,24 @@ describe.skipIf(!shouldRun)("earn — integration (live API)", () => {
   let chains: Array<Record<string, unknown>>;
   let protocols: Array<Record<string, unknown>>;
   let vaults: Array<Record<string, unknown>>;
+  let positions: Array<Record<string, unknown>>;
 
   beforeAll(async () => {
-    const [chainsResponse, protocolsResponse, vaultsResponse] = await Promise.all([
-      axios.get(`${EARN_API_BASE}/chains`, { params: PARAMS }),
-      axios.get(`${EARN_API_BASE}/protocols`, { params: PARAMS }),
-      axios.get(`${EARN_API_BASE}/vaults`, {
-        params: { ...PARAMS, limit: 10, sortBy: "apy" },
+    const [chainsResponse, protocolsResponse, vaultsResponse, positionsResponse] = await Promise.all([
+      earnApi.get("/chains"),
+      earnApi.get("/protocols"),
+      earnApi.get("/vaults", {
+        params: { limit: 10, sortBy: "apy" },
       }),
+      earnApi.get("/portfolio/0xFCd7c4ff5b124c9A73A53ea9F03BE43aC5BFb632/positions"),
     ]);
+
+    const positionsData = positionsResponse.data;
 
     chains = chainsResponse.data;
     protocols = protocolsResponse.data;
     vaults = vaultsResponse.data.data;
+    positions = positionsData.positions;
   });
 
   it("returns supported Earn chains", () => {
@@ -56,14 +58,28 @@ describe.skipIf(!shouldRun)("earn — integration (live API)", () => {
     }
   });
 
+  it("returns wallet Earn positions by address", () => {
+    expect(Array.isArray(positions)).toBe(true);
+
+    if (positions.length === 0) {
+      expect(positions).toEqual([]);
+      return;
+    }
+
+    const position = positions[0];
+    expect(typeof position["chainId"]).toBe("number");
+    expect(typeof position["address"]).toBe("string");
+    expect(typeof position["protocolName"]).toBe("string");
+    expect(typeof position["balanceUsd"]).toBe("string");
+    expect(typeof position["balanceNative"]).toBe("string");
+  });
+
   it("returns one Earn vault by chain ID and address", async () => {
     const vault = vaults.find((item) => typeof item["chainId"] === "number" && typeof item["address"] === "string");
 
     expect(vault).toBeDefined();
 
-    const { data } = await axios.get(`${EARN_API_BASE}/vaults/${vault?.["chainId"]}/${vault?.["address"]}`, {
-      params: PARAMS,
-    });
+    const { data } = await earnApi.get(`/vaults/${vault?.["chainId"]}/${vault?.["address"]}`);
 
     expect(data.chainId).toBe(vault?.["chainId"]);
     expect(data.address).toBe(vault?.["address"]);

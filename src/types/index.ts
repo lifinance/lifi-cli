@@ -289,7 +289,6 @@ export interface EarnPositionsResponse {
   positions: EarnPosition[];
 }
 
-
 // --- Balance / allowance result shapes ---
 // Field names mirror the LI.FI MCP server's tool result schema so JSON output is drop-in compatible.
 

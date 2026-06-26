@@ -31,10 +31,6 @@ function vaultApy(vault: EarnVault): number | undefined {
   return vault.analytics?.apy?.total ?? undefined;
 }
 
-function vaultTvl(vault: EarnVault): number | string | undefined {
-  return vault.analytics?.tvl?.usd ?? undefined;
-}
-
 function parsePositiveInteger(value: string, message: string): number {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) {
@@ -50,7 +46,7 @@ function vaultRows(vaults: EarnVault[]): string[][] {
     vault.name ?? vault.slug ?? "N/A",
     vaultAsset(vault),
     percent(vaultApy(vault)),
-    formatUsd(Number(vaultTvl(vault))),
+    vault.analytics?.tvl?.usd ? formatUsd(Number(vault.analytics.tvl.usd)) : "N/A",
   ]);
 }
 
@@ -61,7 +57,7 @@ function positionRows(positions: EarnPosition[]): string[][] {
     position.address ?? "N/A",
     position.asset?.symbol ?? "N/A",
     position.balanceNative ?? "N/A",
-    formatUsd(Number(position.balanceUsd)),
+    position.balanceUsd ? formatUsd(Number(position.balanceUsd)) : "N/A",
   ]);
 }
 
@@ -163,7 +159,7 @@ Examples:
             ["Vault", data.name ?? data.slug ?? data.address ?? "N/A"],
             ["Asset", vaultAsset(data)],
             ["APY", percent(vaultApy(data))],
-            ["TVL", formatUsd(Number(vaultTvl(data)))],
+            ["TVL", data.analytics?.tvl?.usd ? formatUsd(Number(data.analytics.tvl.usd)) : "N/A"],
             ["Transactional", data.isTransactional ? "Yes" : "No"],
             ["Redeemable", data.isRedeemable ? "Yes" : "No"],
           ];

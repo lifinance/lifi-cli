@@ -198,6 +198,28 @@ describe("earn command", () => {
     expect(output).toContain("Yes");
   });
 
+  it("renders a single vault as a table with missing TVL", async () => {
+    const vault = {
+      chainId: 8453,
+      address: "0xvault",
+      protocol: { name: "Aave" },
+      name: "USDC Vault",
+      underlyingTokens: [{ symbol: "USDC" }],
+      analytics: { apy: { total: 0.0525 } },
+      isTransactional: true,
+      isRedeemable: false,
+    };
+
+    mockedEarnApi.get.mockResolvedValue({ data: vault });
+
+    const program = createProgram();
+    await program.parseAsync(["node", "test", "earn", "vault", "8453", "0xvault"]);
+
+    const output = consoleOutput.join("");
+    expect(output).toContain("USDC Vault");
+    expect(output).toContain("N/A");
+  });
+
   it("lists Earn chains", async () => {
     const chains = [{ chainId: 8453, name: "Base", networkCaip: "eip155:8453" }];
 
@@ -313,5 +335,35 @@ describe("earn command", () => {
     expect(output).toContain("USDC");
     expect(output).toContain("1523450000");
     expect(output).toContain("$1,523.45");
+  });
+
+  it("renders wallet positions as a table with missing USD balance", async () => {
+    const response = {
+      positions: [
+        {
+          chainId: 1,
+          address: "0xa17581a9e3356d9a858b789d68b4d866e593ae94",
+          protocolName: "aave-v3",
+          asset: {
+            address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            name: "USD Coin",
+            symbol: "USDC",
+            decimals: 6,
+          },
+          balanceNative: "1523450000",
+        },
+      ],
+    };
+
+    mockedEarnApi.get.mockResolvedValue({ data: response });
+
+    const program = createProgram();
+    await program.parseAsync(["node", "test", "earn", "positions", "0xabc"]);
+
+    const output = consoleOutput.join("");
+    expect(output).toContain("aave-v3");
+    expect(output).toContain("USDC");
+    expect(output).toContain("1523450000");
+    expect(output).toContain("N/A");
   });
 });
