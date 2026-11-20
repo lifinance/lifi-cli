@@ -80,7 +80,7 @@ If no type-checker is configured, state that explicitly instead of claiming succ
 CLI for the LI.FI cross-chain bridge & DEX aggregation API.
 
 ## Tech Stack
-- **Runtime:** Node.js >= 18
+- **Runtime:** Node.js >= 20 (supported floor for consumers); develop and release on Node.js 26 (`.nvmrc`)
 - **Language:** TypeScript 5.6 (strict mode + `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes`, `noImplicitReturns`)
 - **Linter:** Biome (`npx biome check src/` — `noExplicitAny: error`)
 - **Build:** tsup — bundles to single CJS file at `dist/lifi.cjs`
